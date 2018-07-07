@@ -37,6 +37,7 @@ body * {
   background-color: #eaeaea;
   padding: 16px;
   overflow: auto;
+  line-height: 1.5em;
 }
 
 .slide-area h1 {

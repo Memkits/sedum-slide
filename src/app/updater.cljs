@@ -16,6 +16,7 @@
     :router (assoc store :router op-data)
     :render-slides (render-slides store)
     :slide-up (update store :page (fn [page] (if (pos? page) (dec page) page)))
+    :page (assoc store :page op-data)
     :slide-down
       (update
        store

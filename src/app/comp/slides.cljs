@@ -53,4 +53,8 @@
             :bottom 16,
             :color (hsl 0 0 1 0.6),
             :font-size 24}}
-   (<> (str (inc page) "/" (count slides))))))
+   (span {:style {:cursor :pointer}, :on-click (fn [e d! m!] (d! :page 0))} (<> (inc page)))
+   (<> "/")
+   (span
+    {:style {:cursor :pointer}, :on-click (fn [e d! m!] (d! :page (dec (count slides))))}
+    (<> (count slides))))))
