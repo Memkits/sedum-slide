@@ -35,6 +35,15 @@
    (fn [] (.setItem js/localStorage (:storage config/site) (pr-str (:store @*reel)))))
   (let [raw (.getItem js/localStorage (:storage config/site))]
     (if (some? raw) (do (dispatch! :hydrate-storage (read-string raw)))))
+  (.addEventListener
+   js/window
+   "keydown"
+   (fn [event]
+     (when (= :slides (:router (:store @*reel)))
+       (case (.-key event)
+         "ArrowDown" (dispatch! :slide-down nil)
+         "ArrowUp" (dispatch! :slide-up nil)
+         (do)))))
   (println "App started."))
 
 (defn reload! []

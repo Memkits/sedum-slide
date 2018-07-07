@@ -29,3 +29,11 @@ body * {
 ::-webkit-resizer{
   background-color:transparent;
 }
+
+.slide-area {}
+
+.slide-area .md-code-block {
+  font-size: 24px;
+  background-color: #eaeaea;
+  padding: 16px;
+}
