@@ -36,4 +36,18 @@ body * {
   font-size: 24px;
   background-color: #eaeaea;
   padding: 16px;
+  overflow: auto;
+}
+
+.slide-area h1 {
+  text-align: center;
+  margin-top: 80px;
+}
+
+.slide-area h2 {
+  text-align: center;
+}
+
+.slide-area h3 {
+    text-align: center;
 }

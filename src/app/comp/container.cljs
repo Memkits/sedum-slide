@@ -20,7 +20,9 @@
  (div
   {:style {:width "100%", :height "100%", :font-family ui/font-code, :padding 16}}
   (textarea
-   {:style (merge ui/textarea {:width "100%", :height "80%", :padding-bottom 120}),
+   {:style (merge
+            ui/textarea
+            {:width "100%", :height "80%", :padding-bottom 120, :font-family ui/font-code}),
     :value content,
     :placeholder "Slides",
     :on-input (fn [e d! m!] (d! :content (:value e)))})
@@ -37,7 +39,7 @@
  (router)
  (div
   {:style (merge
-           ui/column-parted
+           ui/column
            {:min-width 40,
             :background-color (hsl 0 0 90),
             :align-items :center,
@@ -45,7 +47,11 @@
             :flex-shrink 0})}
   (span
    {:style {:cursor :pointer}, :on-click (fn [e d! m!] (d! :router :home))}
-   (comp-icon :code))))
+   (comp-icon :code))
+  (=< nil 16)
+  (span
+   {:style {:cursor :pointer}, :on-click (fn [e d! m!] (d! :router :slides))}
+   (comp-icon :ios-monitor))))
 
 (defcomp
  comp-container

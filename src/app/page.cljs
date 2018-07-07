@@ -19,7 +19,7 @@
     base-info
     {:styles ["/entry/main.css" (:dev-ui config/site)],
      :scripts ["/main.js"],
-     :inline-styles []})))
+     :inline-styles [(slurp "./node_modules/highlight.js/styles/github.css")]})))
 
 (def local-bundle? (= "local-bundle" (get-env! "mode")))
 
@@ -36,7 +36,8 @@
       {:styles [(:release-ui config/site)],
        :scripts (map #(-> % :output-name prefix-cdn) assets),
        :ssr "respo-ssr",
-       :inline-styles [(slurp "./entry/main.css")]}))))
+       :inline-styles [(slurp "./node_modules/highlight.js/styles/github.css")
+                       (slurp "./entry/main.css")]}))))
 
 (defn main! []
   (if (contains? config/bundle-builds (get-env! "mode"))
