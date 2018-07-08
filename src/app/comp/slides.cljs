@@ -8,12 +8,42 @@
             [verbosely.core :refer [verbosely!]]
             [respo.comp.space :refer [=<]]
             [reel.comp.reel :refer [comp-reel]]
-            [respo-md.comp.md :refer [comp-md-block]]
+            [respo-md.comp.md :refer [comp-md-block comp-md]]
             [app.config :refer [dev?]]
             [respo.comp.inspect :refer [comp-inspect]]
             [respo-ui.comp.icon :refer [comp-icon]]
             ["highlight.js" :as hljs]
-            ["escape-html" :as escape-html]))
+            ["escape-html" :as escape-html]
+            [clojure.string :as string]))
+
+(defcomp
+ comp-pager
+ (page slides)
+ (div
+  {:style {:position :absolute,
+           :right 16,
+           :bottom 24,
+           :color (hsl 0 0 1 0.6),
+           :font-size 24}}
+  (span {:style {:cursor :pointer}, :on-click (fn [e d! m!] (d! :page 0))} (<> (inc page)))
+  (<> "/")
+  (span
+   {:style {:cursor :pointer}, :on-click (fn [e d! m!] (d! :page (dec (count slides))))}
+   (<> (count slides)))))
+
+(defcomp
+ comp-prompter
+ (page slides)
+ (let [next-page (inc page)
+       slide (get slides next-page)
+       first-line (->> (string/split slide "\n")
+                       (filter (fn [line] (not (string/blank? line))))
+                       (first))]
+   (div
+    {:style {:position :absolute, :bottom 8, :right 16}}
+    (if (some? first-line)
+      (span {:style {:color (hsl 0 0 70)}} (comp-md first-line))
+      (<> "No preview" {:color (hsl 0 0 90), :font-style :italic})))))
 
 (def style-md-area
   {:overflow :auto,
@@ -47,14 +77,5 @@
       (if (contains? supported-langs lang)
         (.-value (.highlight hljs (get supported-langs lang) code))
         (escape-html code)))})
-  (div
-   {:style {:position :absolute,
-            :right 16,
-            :bottom 16,
-            :color (hsl 0 0 1 0.6),
-            :font-size 24}}
-   (span {:style {:cursor :pointer}, :on-click (fn [e d! m!] (d! :page 0))} (<> (inc page)))
-   (<> "/")
-   (span
-    {:style {:cursor :pointer}, :on-click (fn [e d! m!] (d! :page (dec (count slides))))}
-    (<> (count slides))))))
+  (comp-pager page slides)
+  (comp-prompter page slides)))
