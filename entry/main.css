@@ -1,0 +1,54 @@
+
+body {
+  margin: 0;
+  font-display: optional;
+}
+
+body * {
+  box-sizing: border-box;
+  flex-shrink: 0;
+}
+
+::-webkit-scrollbar {
+  width: 2px;
+  height: 2px;
+}
+
+::-webkit-scrollbar-track {
+  background-color: hsla(0,0%,100%);
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: hsla(200,100%,76%,0.8);
+}
+
+::-webkit-scrollbar-corner {
+  background-color: transparent;
+}
+
+::-webkit-resizer{
+  background-color:transparent;
+}
+
+.slide-area {}
+
+.slide-area .md-code-block {
+  font-size: 24px;
+  background-color: #eaeaea;
+  padding: 16px;
+  overflow: auto;
+  line-height: 1.5em;
+}
+
+.slide-area h1 {
+  text-align: center;
+  margin-top: 80px;
+}
+
+.slide-area h2 {
+  text-align: center;
+}
+
+.slide-area h3 {
+    text-align: center;
+}
