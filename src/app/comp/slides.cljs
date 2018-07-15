@@ -12,19 +12,15 @@
             [app.config :refer [dev?]]
             [respo.comp.inspect :refer [comp-inspect]]
             [respo-ui.comp.icon :refer [comp-icon]]
-            ["highlight.js" :as hljs]
+            ["highlight.js/lib/index" :as hljs]
             ["escape-html" :as escape-html]
             [clojure.string :as string]))
 
 (defcomp
  comp-pager
- (page slides)
+ (page slides position)
  (div
-  {:style {:position :absolute,
-           :right 16,
-           :bottom 24,
-           :color (hsl 0 0 1 0.6),
-           :font-size 24}}
+  {:style (merge {:position :absolute, :color (hsl 0 0 1 0.6), :font-size 24} position)}
   (span {:style {:cursor :pointer}, :on-click (fn [e d! m!] (d! :page 0))} (<> (inc page)))
   (<> "/")
   (span
@@ -33,16 +29,16 @@
 
 (defcomp
  comp-prompter
- (page slides)
+ (page slides position)
  (let [next-page (inc page)
        slide (get slides next-page)
        first-line (->> (string/split slide "\n")
                        (filter (fn [line] (not (string/blank? line))))
                        (first))]
    (div
-    {:style {:position :absolute, :bottom 8, :right 16}}
+    {:style (merge {:position :absolute} position)}
     (if (some? first-line)
-      (span {:style {:color (hsl 0 0 70)}} (comp-md first-line))
+      (span {:style {:color (hsl 0 0 70), :font-size 24}} (comp-md first-line))
       (<> "No preview" {:color (hsl 0 0 90), :font-style :italic})))))
 
 (def style-md-area
@@ -77,5 +73,5 @@
       (if (contains? supported-langs lang)
         (.-value (.highlight hljs (get supported-langs lang) code))
         (escape-html code)))})
-  (comp-pager page slides)
-  (comp-prompter page slides)))
+  (comp-pager page slides {:right 16, :bottom 8})
+  (comp-prompter page slides {:bottom 48, :right 16})))
