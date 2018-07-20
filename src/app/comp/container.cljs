@@ -40,18 +40,24 @@
  (div
   {:style (merge
            ui/column
-           {:min-width 40,
+           {:min-width 48,
             :background-color (hsl 0 0 90),
             :align-items :center,
             :padding 16,
-            :flex-shrink 0})}
+            :flex-shrink 0,
+            :font-size 24})}
   (span
    {:style {:cursor :pointer}, :on-click (fn [e d! m!] (d! :router :home))}
    (comp-icon :code))
-  (=< nil 16)
+  (=< nil 32)
   (span
    {:style {:cursor :pointer}, :on-click (fn [e d! m!] (d! :router :slides))}
-   (comp-icon :ios-monitor))))
+   (comp-icon :ios-monitor))
+  (=< nil 32)
+  (span
+   {:style {:cursor :pointer},
+    :on-click (fn [e d! m!] (.log js/console (comp-sidebar nil)))}
+   (comp-icon :information-circled))))
 
 (defcomp
  comp-container
