@@ -12,16 +12,18 @@
             [app.config :refer [dev?]]
             [respo.comp.inspect :refer [comp-inspect]]
             [respo-ui.comp.icon :refer [comp-icon]]
-            [app.comp.slides :refer [comp-slides]]))
+            [app.comp.slides :refer [comp-slides]]
+            [app.comp.headlines :refer [comp-headlines]]))
 
 (defcomp
  comp-draft
  (content)
  (div
-  {:style {:width "100%", :height "100%", :font-family ui/font-code, :padding 16}}
+  {:style (merge ui/flex ui/column {:font-family ui/font-code, :padding 16})}
   (textarea
    {:style (merge
             ui/textarea
+            ui/flex
             {:width "100%", :height "80%", :padding-bottom 120, :font-family ui/font-code}),
     :value content,
     :placeholder "Slides",
@@ -29,10 +31,10 @@
   (=< nil 16)
   (div
    {:style ui/row-parted}
-   (span {})
    (button
     {:style ui/button, :on-click (fn [e d! m!] (d! :render-slides nil))}
-    (<> "Render")))))
+    (<> "Render"))
+   (span {}))))
 
 (defcomp
  comp-sidebar
@@ -55,8 +57,7 @@
    (comp-icon :ios-monitor))
   (=< nil 32)
   (span
-   {:style {:cursor :pointer},
-    :on-click (fn [e d! m!] (.log js/console (comp-sidebar nil)))}
+   {:style {:cursor :pointer}, :on-click (fn [e d! m!] (d! :router :headlines))}
    (comp-icon :information-circled))))
 
 (defcomp
@@ -65,11 +66,10 @@
  (let [store (:store reel), states (:states store)]
    (div
     {:style (merge ui/global ui/fullscreen ui/row)}
-    (div
-     {:style (merge ui/flex ui/row)}
-     (case (:router store)
-       :slides (comp-slides (:slides store) (:page store))
-       (comp-draft (:content store))))
+    (case (:router store)
+      :slides (comp-slides (:slides store) (:page store))
+      :headlines (comp-headlines (:slides store))
+      (comp-draft (:content store)))
     (comp-sidebar (:router store))
     (when dev? (cursor-> :reel comp-reel states reel {}))
     (when dev? (comp-inspect "Store" store {:bottom 0})))))

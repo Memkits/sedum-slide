@@ -14,7 +14,8 @@
             [respo-ui.comp.icon :refer [comp-icon]]
             ["highlight.js/lib/index" :as hljs]
             ["escape-html" :as escape-html]
-            [clojure.string :as string]))
+            [clojure.string :as string]
+            [app.util :refer [grab-headline]]))
 
 (defcomp
  comp-pager
@@ -30,11 +31,7 @@
 (defcomp
  comp-prompter
  (page slides position)
- (let [next-page (inc page)
-       slide (get slides next-page)
-       first-line (->> (string/split slide "\n")
-                       (filter (fn [line] (not (string/blank? line))))
-                       (first))]
+ (let [next-page (inc page), slide (get slides next-page), first-line (grab-headline slide)]
    (div
     {:style (merge {:position :absolute} position)}
     (if (some? first-line)
