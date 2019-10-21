@@ -13,6 +13,8 @@
             ["highlight.js/lib/languages/clojure" :as clojure-lang]
             ["highlight.js/lib/languages/bash" :as bash-lang]
             ["highlight.js/lib/languages/javascript" :as javascript-lang]
+            ["highlight.js/lib/languages/typescript" :as typescript-lang]
+            ["highlight.js/lib/languages/json" :as json-lang]
             [cumulo-util.core :refer [repeat!]]))
 
 (defonce *reel
@@ -51,6 +53,8 @@
   (.registerLanguage hljs "clojure" clojure-lang)
   (.registerLanguage hljs "bash" bash-lang)
   (.registerLanguage hljs "javascript" javascript-lang)
+  (.registerLanguage hljs "ts" typescript-lang)
+  (.registerLanguage hljs "json" json-lang)
   (render-app! render!)
   (add-watch *reel :changes (fn [] (render-app! render!)))
   (listen-devtools! "a" dispatch!)

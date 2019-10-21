@@ -53,7 +53,9 @@
    "bash" "bash",
    "clj" "clojure",
    "javascript" "javascript",
-   "js" "javascript"})
+   "js" "javascript",
+   "ts" "typescript",
+   "json" "json"})
 
 (defcomp
  comp-slides
@@ -65,8 +67,9 @@
    {:style style-md-area,
     :class-name "slide-area",
     :highlight (fn [code lang]
-      (if (contains? supported-langs lang)
-        (.-value (.highlight hljs (get supported-langs lang) code))
-        (escape-html code)))})
+      (let [code-lang (get supported-langs lang)]
+        (if (some? code-lang)
+          (.-value (.highlight hljs code-lang code))
+          (do (js/console.log "not highlighting:" lang code-lang) (escape-html code)))))})
   (comp-pager page slides {:right 16, :bottom 8})
   (comp-prompter page slides {:bottom 48, :right 16})))
