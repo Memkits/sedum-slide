@@ -27,7 +27,13 @@
     (case (.-key event)
       "ArrowRight" (dispatch! :slide-down nil)
       "ArrowLeft" (dispatch! :slide-up nil)
-      (do))))
+      (do)))
+  (when (and (= "e" (.-key event)) (.-metaKey event))
+    (let [router (:router (:store @*reel))]
+      (case router
+        :home (dispatch! :render-slides nil)
+        :slides (dispatch! :router :home)
+        (do)))))
 
 (def mount-target (.querySelector js/document ".app"))
 

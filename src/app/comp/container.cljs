@@ -4,7 +4,7 @@
             [respo-ui.core :as ui]
             [respo.core
              :refer
-             [defcomp cursor-> action-> mutation-> <> div button textarea span]]
+             [defcomp cursor-> action-> mutation-> <> div button textarea span defeffect]]
             [respo.comp.space :refer [=<]]
             [reel.comp.reel :refer [comp-reel]]
             [respo-md.comp.md :refer [comp-md]]
@@ -14,26 +14,34 @@
             [app.comp.slides :refer [comp-slides]]
             [app.comp.headlines :refer [comp-headlines]]))
 
+(defeffect
+ effect-focus
+ ()
+ ()
+ (action el)
+ (when (= :mount action) (.focus (.querySelector el "textarea"))))
+
 (defcomp
  comp-draft
  (content)
- (div
-  {:style (merge ui/flex ui/column {:font-family ui/font-code, :padding 16})}
-  (textarea
-   {:style (merge
-            ui/textarea
-            ui/flex
-            {:width "100%", :height "80%", :padding-bottom 120, :font-family ui/font-code}),
-    :value content,
-    :placeholder "Slides",
-    :on-input (fn [e d! m!] (d! :content (:value e)))})
-  (=< nil 16)
+ [(effect-focus)
   (div
-   {:style ui/row-parted}
-   (button
-    {:style ui/button, :on-click (fn [e d! m!] (d! :render-slides nil))}
-    (<> "Render"))
-   (span {}))))
+   {:style (merge ui/flex ui/column {:font-family ui/font-code, :padding 16})}
+   (textarea
+    {:style (merge
+             ui/textarea
+             ui/flex
+             {:width "100%", :height "80%", :padding-bottom 120, :font-family ui/font-code}),
+     :value content,
+     :placeholder "Slides",
+     :on-input (fn [e d! m!] (d! :content (:value e)))})
+   (=< nil 16)
+   (div
+    {:style ui/row-parted}
+    (button
+     {:style ui/button, :on-click (fn [e d! m!] (d! :render-slides nil))}
+     (<> "Render"))
+    (span {})))])
 
 (defcomp
  comp-sidebar
