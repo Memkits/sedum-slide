@@ -19,5 +19,5 @@
    :release-ui "http://cdn.tiye.me/favored-fonts/main.css",
    :cdn-url "http://cdn.tiye.me/sedum-slide/",
    :title "Sedum Slide",
-   :icon "http://cdn.tiye.me/logo/mvc-works.png",
+   :icon "http://cdn.tiye.me/logo/sedum-icon.png",
    :storage-key "sedum-slide"})

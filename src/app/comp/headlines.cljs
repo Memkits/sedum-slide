@@ -18,8 +18,7 @@
  comp-headlines
  (slides)
  (div
-  {:style (merge ui/flex {:padding 16, :overflow :auto})}
-  (<> "Headlines")
+  {:style (merge ui/flex {:overflow :auto}), :class-name "headlines-page"}
   (list->
    {:style {:padding 16}}
    (->> slides
@@ -27,7 +26,13 @@
          (fn [idx slide]
            [(md5 slide)
             (div
-             {:style ui/row}
-             (<> idx {:color (hsl 0 0 70), :font-family ui/font-code})
+             {:style ui/row-middle}
+             (<>
+              idx
+              {:color (hsl 0 0 70),
+               :font-family ui/font-code,
+               :display :inline-block,
+               :min-width 40,
+               :text-align :right})
              (=< 16 nil)
-             (<> (grab-headline slide)))]))))))
+             (comp-md-block (grab-headline slide) {}))]))))))
