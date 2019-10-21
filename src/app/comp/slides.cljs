@@ -2,16 +2,14 @@
 (ns app.comp.slides
   (:require [hsl.core :refer [hsl]]
             [respo-ui.core :as ui]
-            [respo.macros
+            [respo.core
              :refer
              [defcomp cursor-> action-> mutation-> <> div button textarea span]]
-            [verbosely.core :refer [verbosely!]]
             [respo.comp.space :refer [=<]]
             [reel.comp.reel :refer [comp-reel]]
             [respo-md.comp.md :refer [comp-md-block comp-md]]
             [app.config :refer [dev?]]
             [respo.comp.inspect :refer [comp-inspect]]
-            [respo-ui.comp.icon :refer [comp-icon]]
             ["highlight.js/lib/index" :as hljs]
             ["escape-html" :as escape-html]
             [clojure.string :as string]

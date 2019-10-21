@@ -2,16 +2,15 @@
 (ns app.comp.container
   (:require [hsl.core :refer [hsl]]
             [respo-ui.core :as ui]
-            [respo.macros
+            [respo.core
              :refer
              [defcomp cursor-> action-> mutation-> <> div button textarea span]]
-            [verbosely.core :refer [verbosely!]]
             [respo.comp.space :refer [=<]]
             [reel.comp.reel :refer [comp-reel]]
             [respo-md.comp.md :refer [comp-md]]
             [app.config :refer [dev?]]
             [respo.comp.inspect :refer [comp-inspect]]
-            [respo-ui.comp.icon :refer [comp-icon]]
+            [feather.core :refer [comp-i]]
             [app.comp.slides :refer [comp-slides]]
             [app.comp.headlines :refer [comp-headlines]]))
 
@@ -50,15 +49,15 @@
             :font-size 24})}
   (span
    {:style {:cursor :pointer}, :on-click (fn [e d! m!] (d! :router :home))}
-   (comp-icon :code))
+   (comp-i :code 14 "#ccc"))
   (=< nil 32)
   (span
    {:style {:cursor :pointer}, :on-click (fn [e d! m!] (d! :router :slides))}
-   (comp-icon :ios-monitor))
+   (comp-i :airplay 14 "#aaa"))
   (=< nil 32)
   (span
    {:style {:cursor :pointer}, :on-click (fn [e d! m!] (d! :router :headlines))}
-   (comp-icon :information-circled))))
+   (comp-i :info 14 "#aaa"))))
 
 (defcomp
  comp-container
@@ -72,4 +71,4 @@
       (comp-draft (:content store)))
     (comp-sidebar (:router store))
     (when dev? (cursor-> :reel comp-reel states reel {}))
-    (when dev? (comp-inspect "Store" store {:bottom 0})))))
+    (when dev? (comp-inspect "Store" store {:bottom 0, :left 100})))))
