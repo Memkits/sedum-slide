@@ -2,16 +2,14 @@
 (ns app.comp.slides
   (:require [hsl.core :refer [hsl]]
             [respo-ui.core :as ui]
-            [respo.macros
+            [respo.core
              :refer
              [defcomp cursor-> action-> mutation-> <> div button textarea span]]
-            [verbosely.core :refer [verbosely!]]
             [respo.comp.space :refer [=<]]
             [reel.comp.reel :refer [comp-reel]]
             [respo-md.comp.md :refer [comp-md-block comp-md]]
             [app.config :refer [dev?]]
             [respo.comp.inspect :refer [comp-inspect]]
-            [respo-ui.comp.icon :refer [comp-icon]]
             ["highlight.js/lib/index" :as hljs]
             ["escape-html" :as escape-html]
             [clojure.string :as string]
@@ -55,7 +53,9 @@
    "bash" "bash",
    "clj" "clojure",
    "javascript" "javascript",
-   "js" "javascript"})
+   "js" "javascript",
+   "ts" "typescript",
+   "json" "json"})
 
 (defcomp
  comp-slides
@@ -67,8 +67,9 @@
    {:style style-md-area,
     :class-name "slide-area",
     :highlight (fn [code lang]
-      (if (contains? supported-langs lang)
-        (.-value (.highlight hljs (get supported-langs lang) code))
-        (escape-html code)))})
+      (let [code-lang (get supported-langs lang)]
+        (if (some? code-lang)
+          (.-value (.highlight hljs code-lang code))
+          (do (js/console.log "not highlighting:" lang code-lang) (escape-html code)))))})
   (comp-pager page slides {:right 16, :bottom 8})
   (comp-prompter page slides {:bottom 48, :right 16})))

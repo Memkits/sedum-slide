@@ -2,39 +2,46 @@
 (ns app.comp.container
   (:require [hsl.core :refer [hsl]]
             [respo-ui.core :as ui]
-            [respo.macros
+            [respo.core
              :refer
-             [defcomp cursor-> action-> mutation-> <> div button textarea span]]
-            [verbosely.core :refer [verbosely!]]
+             [defcomp cursor-> action-> mutation-> <> div button textarea span defeffect]]
             [respo.comp.space :refer [=<]]
             [reel.comp.reel :refer [comp-reel]]
             [respo-md.comp.md :refer [comp-md]]
             [app.config :refer [dev?]]
             [respo.comp.inspect :refer [comp-inspect]]
-            [respo-ui.comp.icon :refer [comp-icon]]
+            [feather.core :refer [comp-i]]
             [app.comp.slides :refer [comp-slides]]
             [app.comp.headlines :refer [comp-headlines]]))
+
+(defeffect
+ effect-focus
+ ()
+ ()
+ (action el)
+ (when (= :mount action) (.focus (.querySelector el "textarea"))))
 
 (defcomp
  comp-draft
  (content)
- (div
-  {:style (merge ui/flex ui/column {:font-family ui/font-code, :padding 16})}
-  (textarea
-   {:style (merge
-            ui/textarea
-            ui/flex
-            {:width "100%", :height "80%", :padding-bottom 120, :font-family ui/font-code}),
-    :value content,
-    :placeholder "Slides",
-    :on-input (fn [e d! m!] (d! :content (:value e)))})
-  (=< nil 16)
+ [(effect-focus)
   (div
-   {:style ui/row-parted}
-   (button
-    {:style ui/button, :on-click (fn [e d! m!] (d! :render-slides nil))}
-    (<> "Render"))
-   (span {}))))
+   {:style (merge ui/flex ui/column {:font-family ui/font-code, :padding 16})}
+   (textarea
+    {:style (merge
+             ui/textarea
+             ui/flex
+             {:width "100%", :height "80%", :padding-bottom 120, :font-family ui/font-code}),
+     :value content,
+     :placeholder "Slides",
+     :on-input (fn [e d! m!] (d! :content (:value e)))})
+   (=< nil 16)
+   (div
+    {:style ui/row-parted}
+    (button
+     {:style ui/button, :on-click (fn [e d! m!] (d! :render-slides nil))}
+     (<> "Render"))
+    (span {})))])
 
 (defcomp
  comp-sidebar
@@ -50,15 +57,15 @@
             :font-size 24})}
   (span
    {:style {:cursor :pointer}, :on-click (fn [e d! m!] (d! :router :home))}
-   (comp-icon :code))
+   (comp-i :code 14 "#ccc"))
   (=< nil 32)
   (span
    {:style {:cursor :pointer}, :on-click (fn [e d! m!] (d! :router :slides))}
-   (comp-icon :ios-monitor))
+   (comp-i :airplay 14 "#aaa"))
   (=< nil 32)
   (span
    {:style {:cursor :pointer}, :on-click (fn [e d! m!] (d! :router :headlines))}
-   (comp-icon :information-circled))))
+   (comp-i :info 14 "#aaa"))))
 
 (defcomp
  comp-container
@@ -72,4 +79,4 @@
       (comp-draft (:content store)))
     (comp-sidebar (:router store))
     (when dev? (cursor-> :reel comp-reel states reel {}))
-    (when dev? (comp-inspect "Store" store {:bottom 0})))))
+    (when dev? (comp-inspect "Store" store {:bottom 0, :left 100})))))

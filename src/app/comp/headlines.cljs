@@ -2,14 +2,12 @@
 (ns app.comp.headlines
   (:require [hsl.core :refer [hsl]]
             [respo-ui.core :as ui]
-            [respo.macros :refer [defcomp cursor-> list-> <> div button textarea span]]
-            [verbosely.core :refer [verbosely!]]
+            [respo.core :refer [defcomp cursor-> list-> <> div button textarea span]]
             [respo.comp.space :refer [=<]]
             [reel.comp.reel :refer [comp-reel]]
             [respo-md.comp.md :refer [comp-md-block comp-md]]
             [app.config :refer [dev?]]
             [respo.comp.inspect :refer [comp-inspect]]
-            [respo-ui.comp.icon :refer [comp-icon]]
             ["highlight.js/lib/index" :as hljs]
             ["escape-html" :as escape-html]
             [clojure.string :as string]
@@ -20,8 +18,7 @@
  comp-headlines
  (slides)
  (div
-  {:style (merge ui/flex {:padding 16, :overflow :auto})}
-  (<> "Headlines")
+  {:style (merge ui/flex {:overflow :auto}), :class-name "headlines-page"}
   (list->
    {:style {:padding 16}}
    (->> slides
@@ -29,7 +26,13 @@
          (fn [idx slide]
            [(md5 slide)
             (div
-             {:style ui/row}
-             (<> idx {:color (hsl 0 0 70), :font-family ui/font-code})
+             {:style ui/row-middle}
+             (<>
+              idx
+              {:color (hsl 0 0 70),
+               :font-family ui/font-code,
+               :display :inline-block,
+               :min-width 40,
+               :text-align :right})
              (=< 16 nil)
-             (<> (grab-headline slide)))]))))))
+             (comp-md-block (grab-headline slide) {}))]))))))

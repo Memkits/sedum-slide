@@ -6,11 +6,10 @@
   "scripts": {
     "watch": "shadow-cljs watch client",
     "serve": "http-server dist -s",
-    "repl": "rlwrap shadow-cljs clj-repl",
+    "build-cdn": "shadow-cljs clj-run build.main/build-cdn",
     "build": "shadow-cljs clj-run build.main/build",
-    "build-local": "shadow-cljs clj-run build.main/build-local",
+    "up": "yarn build-cdn && tiye-up",
     "page": "shadow-cljs clj-run build.main/page",
-    "upload": "lumo -c cli/:src/ -m build.upload",
     "ln": "cd target && rm -f entry && ln -s ../entry"
   },
   "repository": {
@@ -25,6 +24,7 @@
   },
   "dependencies": {
     "escape-html": "^1.0.3",
+    "feather-icons": "^4.24.1",
     "highlight.js": "^9.12.0",
     "md5": "^2.2.1",
     "shortid": "^2.2.12"
