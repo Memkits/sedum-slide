@@ -12,36 +12,46 @@
             [respo.comp.inspect :refer [comp-inspect]]
             [feather.core :refer [comp-i]]
             [app.comp.slides :refer [comp-slides]]
-            [app.comp.headlines :refer [comp-headlines]]))
+            [app.comp.headlines :refer [comp-headlines]]
+            [clojure.string :as string]
+            [app.comp.edit-slide :refer [comp-edit-slide]]))
 
 (defeffect
  effect-focus
  ()
- ()
- (action el)
+ (action el *local at-place?)
  (when (= :mount action) (.focus (.querySelector el "textarea"))))
 
 (defcomp
  comp-draft
- (content)
- [(effect-focus)
-  (div
-   {:style (merge ui/flex ui/column {:font-family ui/font-code, :padding 16})}
-   (textarea
-    {:style (merge
-             ui/textarea
-             ui/flex
-             {:width "100%", :height "80%", :padding-bottom 120, :font-family ui/font-code}),
-     :value content,
-     :placeholder "Slides",
-     :on-input (fn [e d! m!] (d! :content (:value e)))})
-   (=< nil 16)
-   (div
-    {:style ui/row-parted}
-    (button
-     {:style ui/button, :on-click (fn [e d! m!] (d! :render-slides nil))}
-     (<> "Render"))
-    (span {})))])
+ (states slides)
+ (let [state (or (:data states)
+                 {:content (->> slides (string/join (str "\n" "----" "\n")))})
+       content (:content state)]
+   [(effect-focus)
+    (div
+     {:style (merge ui/flex ui/column {:font-family ui/font-code, :padding 16})}
+     (textarea
+      {:style (merge
+               ui/textarea
+               ui/flex
+               {:width "100%",
+                :height "80%",
+                :padding-bottom 120,
+                :font-family ui/font-code}),
+       :value content,
+       :placeholder "Slides",
+       :on-input (fn [e d! m!] (m! (assoc state :content (:value e))))})
+     (=< nil 16)
+     (div
+      {:style ui/row-parted}
+      (span {})
+      (button
+       {:style ui/button,
+        :on-click (fn [e d! m!]
+          (d! :render-slides (vec (string/split content (re-pattern "\\n-{4,}\\n"))))
+          (m! nil))}
+       (<> "Split text"))))]))
 
 (defcomp
  comp-sidebar
@@ -76,7 +86,10 @@
     (case (:router store)
       :slides (comp-slides (:slides store) (:page store))
       :headlines (comp-headlines (:slides store))
-      (comp-draft (:content store)))
+      :home (cursor-> :draft comp-draft states (:slides store))
+      :edit-slide
+        (cursor-> :edit comp-edit-slide states (get (:slides store) (:page store)))
+      (println "router" (:router store)))
     (comp-sidebar (:router store))
     (when dev? (cursor-> :reel comp-reel states reel {}))
     (when dev? (comp-inspect "Store" store {:bottom 0, :left 100})))))

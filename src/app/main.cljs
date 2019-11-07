@@ -21,7 +21,7 @@
   (atom (-> reel-schema/reel (assoc :base schema/store) (assoc :store schema/store))))
 
 (defn dispatch! [op op-data]
-  (comment println "Dispatch:" op)
+  (when (not= op :states) (println "Dispatch:" op (pr-str op-data)))
   (reset! *reel (reel-updater updater @*reel op op-data)))
 
 (defn handle-direction! [event]
@@ -32,10 +32,8 @@
       (do)))
   (when (and (= "e" (.-key event)) (.-metaKey event))
     (let [router (:router (:store @*reel))]
-      (case router
-        :home (dispatch! :render-slides nil)
-        :slides (dispatch! :router :home)
-        (do)))))
+      (case router :edit-slide (println "do...") :slides (dispatch! :router :edit-slide) (do))
+      (println "TODO"))))
 
 (def mount-target (.querySelector js/document ".app"))
 
