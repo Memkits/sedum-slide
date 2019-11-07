@@ -31,13 +31,20 @@
      (textarea
       {:style (merge
                ui/expand
+               ui/textarea
                {:font-family ui/font-code,
                 :font-size 24,
                 :padding 16,
                 :line-height 1.6,
                 :border (str "1px solid " (hsl 0 0 80))}),
        :value (:draft state),
-       :on-input (fn [e d! m!] (m! (assoc state :draft (:value e))))})
+       :on-input (fn [e d! m!] (m! (assoc state :draft (:value e)))),
+       :on-keydown (fn [e d! m!]
+         (let [event (:event e)]
+           (when (and (.-metaKey event) (= "e" (.-key event)))
+             (d! :edit-slide (:draft state))
+             (m! nil)
+             (d! :router :slides))))})
      (div
       {:style (merge ui/row-parted {:padding 16})}
       (span {})

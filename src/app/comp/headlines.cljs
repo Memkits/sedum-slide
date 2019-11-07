@@ -16,23 +16,27 @@
 
 (defcomp
  comp-headlines
- (slides)
+ (slides page)
  (div
-  {:style (merge ui/flex {:overflow :auto}), :class-name "headlines-page"}
+  {:style (merge ui/flex {:overflow :auto, :padding-bottom 200}),
+   :class-name "headlines-page"}
   (list->
-   {:style {:padding 16}}
+   {:style {:padding 16, :font-size 20}}
    (->> slides
         (map-indexed
          (fn [idx slide]
            [(md5 slide)
             (div
-             {:style ui/row-middle}
+             {:style (merge ui/row-middle {:cursor :pointer}),
+              :on-click (fn [e d! m!] (d! :page idx))}
              (<>
-              idx
-              {:color (hsl 0 0 70),
-               :font-family ui/font-code,
-               :display :inline-block,
-               :min-width 40,
-               :text-align :right})
+              (inc idx)
+              (merge
+               {:color (hsl 0 0 90),
+                :font-family ui/font-code,
+                :display :inline-block,
+                :min-width 40,
+                :text-align :right}
+               (if (= page idx) {:color :blue})))
              (=< 16 nil)
              (comp-md-block (grab-headline slide) {}))]))))))
