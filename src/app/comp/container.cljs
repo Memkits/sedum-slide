@@ -38,7 +38,8 @@
                {:width "100%",
                 :height "80%",
                 :padding-bottom 120,
-                :font-family ui/font-code}),
+                :font-family ui/font-code,
+                :font-size 20}),
        :value content,
        :placeholder "Slides",
        :on-input (fn [e d! m!] (m! (assoc state :content (:value e))))})
@@ -53,6 +54,12 @@
           (m! nil))}
        (<> "Split text"))))]))
 
+(defn render-entry [router-name icon current-page]
+  (span
+   {:style (merge {:cursor :pointer, :margin "16px 0"}),
+    :on-click (fn [e d! m!] (d! :router router-name))}
+   (comp-i icon 18 (if (= current-page router-name) "black" "#ccc"))))
+
 (defcomp
  comp-sidebar
  (router)
@@ -60,22 +67,15 @@
   {:style (merge
            ui/column
            {:min-width 48,
-            :background-color (hsl 0 0 90),
+            :background-color (hsl 0 0 94),
             :align-items :center,
             :padding 16,
             :flex-shrink 0,
             :font-size 24})}
-  (span
-   {:style {:cursor :pointer}, :on-click (fn [e d! m!] (d! :router :home))}
-   (comp-i :code 14 "#ccc"))
-  (=< nil 32)
-  (span
-   {:style {:cursor :pointer}, :on-click (fn [e d! m!] (d! :router :slides))}
-   (comp-i :airplay 14 "#aaa"))
-  (=< nil 32)
-  (span
-   {:style {:cursor :pointer}, :on-click (fn [e d! m!] (d! :router :headlines))}
-   (comp-i :info 14 "#aaa"))))
+  (render-entry :slides :airplay router)
+  (render-entry :edit-slide :edit-2 router)
+  (render-entry :headlines :info router)
+  (render-entry :home :code router)))
 
 (defcomp
  comp-container
@@ -85,11 +85,11 @@
     {:style (merge ui/global ui/fullscreen ui/row)}
     (case (:router store)
       :slides (comp-slides (:slides store) (:page store))
-      :headlines (comp-headlines (:slides store))
-      :home (cursor-> :draft comp-draft states (:slides store))
+      :headlines (comp-headlines (:slides store) (:page store))
       :edit-slide
         (cursor-> :edit comp-edit-slide states (get (:slides store) (:page store)))
-      (println "router" (:router store)))
+      :home (cursor-> :draft comp-draft states (:slides store))
+      (div {:style ui/expand} (<> (str "Unknown:" (:router store)))))
     (comp-sidebar (:router store))
     (when dev? (cursor-> :reel comp-reel states reel {}))
     (when dev? (comp-inspect "Store" store {:bottom 0, :left 100})))))
