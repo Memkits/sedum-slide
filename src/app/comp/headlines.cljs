@@ -2,7 +2,7 @@
 (ns app.comp.headlines
   (:require [hsl.core :refer [hsl]]
             [respo-ui.core :as ui]
-            [respo.core :refer [defcomp cursor-> list-> <> div button textarea span]]
+            [respo.core :refer [defcomp >> list-> <> div button textarea span]]
             [respo.comp.space :refer [=<]]
             [reel.comp.reel :refer [comp-reel]]
             [respo-md.comp.md :refer [comp-md-block comp-md]]

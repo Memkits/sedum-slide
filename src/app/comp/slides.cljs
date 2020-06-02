@@ -2,9 +2,7 @@
 (ns app.comp.slides
   (:require [hsl.core :refer [hsl]]
             [respo-ui.core :as ui]
-            [respo.core
-             :refer
-             [defcomp cursor-> action-> mutation-> <> div button textarea span]]
+            [respo.core :refer [defcomp >> <> div button textarea span]]
             [respo.comp.space :refer [=<]]
             [reel.comp.reel :refer [comp-reel]]
             [respo-md.comp.md :refer [comp-md-block comp-md]]

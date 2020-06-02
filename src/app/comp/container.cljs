@@ -2,9 +2,7 @@
 (ns app.comp.container
   (:require [hsl.core :refer [hsl]]
             [respo-ui.core :as ui]
-            [respo.core
-             :refer
-             [defcomp cursor-> action-> mutation-> <> div button textarea span defeffect]]
+            [respo.core :refer [defcomp >> <> div button textarea span defeffect]]
             [respo.comp.space :refer [=<]]
             [reel.comp.reel :refer [comp-reel]]
             [respo-md.comp.md :refer [comp-md]]
@@ -25,7 +23,8 @@
 (defcomp
  comp-draft
  (states slides)
- (let [state (or (:data states)
+ (let [cursor (:cursor states)
+       state (or (:data states)
                  {:content (->> slides (string/join (str "\n" "----" "\n")))})
        content (:content state)]
    [(effect-focus)
@@ -42,16 +41,16 @@
                 :font-size 20}),
        :value content,
        :placeholder "Slides",
-       :on-input (fn [e d! m!] (m! (assoc state :content (:value e))))})
+       :on-input (fn [e d!] (d! cursor (assoc state :content (:value e))))})
      (=< nil 16)
      (div
       {:style ui/row-parted}
       (span {})
       (button
        {:style ui/button,
-        :on-click (fn [e d! m!]
+        :on-click (fn [e d!]
           (d! :render-slides (vec (string/split content (re-pattern "\\n-{4,}\\n"))))
-          (m! nil))}
+          (d! cursor nil))}
        (<> "Split text"))))]))
 
 (defn render-entry [router-name icon current-page]
@@ -86,10 +85,9 @@
     (case (:router store)
       :slides (comp-slides (:slides store) (:page store))
       :headlines (comp-headlines (:slides store) (:page store))
-      :edit-slide
-        (cursor-> :edit comp-edit-slide states (get (:slides store) (:page store)))
-      :home (cursor-> :draft comp-draft states (:slides store))
+      :edit-slide (comp-edit-slide (>> states :edit) (get (:slides store) (:page store)))
+      :home (comp-draft (>> states :draft) (:slides store))
       (div {:style ui/expand} (<> (str "Unknown:" (:router store)))))
     (comp-sidebar (:router store))
-    (when dev? (cursor-> :reel comp-reel states reel {}))
+    (when dev? (comp-reel (>> states :reel) reel {}))
     (when dev? (comp-inspect "Store" store {:bottom 0, :left 100})))))

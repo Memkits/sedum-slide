@@ -1,12 +1,12 @@
 
 (ns app.updater
-  (:require [respo.cursor :refer [mutate]]
+  (:require [respo.cursor :refer [update-states]]
             [clojure.string :as string]
             [app.config :refer [dev?]]))
 
 (defn updater [store op op-data op-id op-time]
   (case op
-    :states (update store :states (mutate op-data))
+    :states (update-states store op-data)
     :content (assoc store :content op-data)
     :router (assoc store :router op-data)
     :render-slides (-> store (assoc :slides op-data) (assoc :router :slides))
