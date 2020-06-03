@@ -2,9 +2,7 @@
 (ns app.comp.edit-slide
   (:require [hsl.core :refer [hsl]]
             [respo-ui.core :as ui]
-            [respo.core
-             :refer
-             [defcomp cursor-> action-> mutation-> <> div button textarea span defeffect]]
+            [respo.core :refer [defcomp >> <> div button textarea span defeffect]]
             [respo.comp.space :refer [=<]]
             [reel.comp.reel :refer [comp-reel]]
             [respo-md.comp.md :refer [comp-md]]
@@ -24,7 +22,7 @@
 (defcomp
  comp-edit-slide
  (states slide)
- (let [state (or (:data states) {:draft slide})]
+ (let [cursor (:cursor states), state (or (:data states) {:draft slide})]
    [(effect-focus)
     (div
      {:style (merge ui/expand ui/column)}
@@ -38,12 +36,12 @@
                 :line-height 1.6,
                 :border (str "1px solid " (hsl 0 0 80))}),
        :value (:draft state),
-       :on-input (fn [e d! m!] (m! (assoc state :draft (:value e)))),
-       :on-keydown (fn [e d! m!]
+       :on-input (fn [e d!] (d! cursor (assoc state :draft (:value e)))),
+       :on-keydown (fn [e d!]
          (let [event (:event e)]
            (when (and (.-metaKey event) (= "e" (.-key event)))
              (d! :edit-slide (:draft state))
-             (m! nil)
+             (d! cursor nil)
              (d! :router :slides))))})
      (div
       {:style (merge ui/row-parted {:padding 16})}
@@ -51,7 +49,7 @@
       (button
        {:style ui/button,
         :inner-text "Submit",
-        :on-click (fn [e d! m!]
+        :on-click (fn [e d!]
           (d! :edit-slide (:draft state))
-          (m! nil)
+          (d! cursor nil)
           (d! :router :slides))})))]))
