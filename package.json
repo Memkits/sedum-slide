@@ -20,13 +20,13 @@
   "license": "MIT",
   "devDependencies": {
     "http-server": "^0.12.3",
-    "shadow-cljs": "^2.9.10"
+    "shadow-cljs": "^2.11.7"
   },
   "dependencies": {
     "escape-html": "^1.0.3",
     "feather-icons": "^4.28.0",
-    "highlight.js": "^10.0.3",
-    "md5": "^2.2.1",
-    "shortid": "^2.2.12"
+    "highlight.js": "^10.3.2",
+    "md5": "^2.3.0",
+    "shortid": "^2.2.16"
   }
 }
