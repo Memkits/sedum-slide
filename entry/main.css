@@ -40,6 +40,12 @@ body * {
   line-height: 1.5em;
 }
 
+.slide-area .md-p {
+  font-size: 36px;
+  line-height: 1.6em;
+  margin-bottom: 40px;
+}
+
 .slide-area h1 {
   text-align: center;
   margin-top: 80px;
@@ -50,7 +56,11 @@ body * {
 }
 
 .slide-area h3 {
-    text-align: center;
+  text-align: center;
+}
+
+.slide-area h4 {
+  margin-bottom: 4px;
 }
 
 .slide-area blockquote {
