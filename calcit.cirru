@@ -1661,7 +1661,6 @@
                                                 :data $ {}
                                                   |T $ {} (:type :expr) (:author |root) (:time 1511096299213) (:id |rkW7xl-1gM)
                                                     :data $ {}
-                                                      |T $ {} (:type :leaf) (:author |root) (:time 1511096301200) (:text "|#()") (:id |r1xXxebylz)
                                                       |j $ {} (:type :leaf) (:author |root) (:time 1511096306997) (:text |->) (:id |S1Lexb1gz)
                                                       |r $ {} (:type :leaf) (:author |root) (:time 1511096308142) (:text |x) (:id |Hk2gxb1xf) (:at 1605003178467) (:by |rJG4IHzWf)
                                                       |v $ {} (:type :leaf) (:author |root) (:time 1511096313911) (:text |:output-name) (:id |HkRglb1gf)

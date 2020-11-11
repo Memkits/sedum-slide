@@ -33,7 +33,7 @@
      (merge
       base-info
       {:styles [(:release-ui config/site)],
-       :scripts (map (fn [x] {:src #(-> x :output-name prefix-cdn)}) assets),
+       :scripts (map (fn [x] {:src (-> x :output-name prefix-cdn)}) assets),
        :ssr "respo-ssr",
        :inline-styles [(slurp "./node_modules/highlight.js/styles/github.css")
                        (slurp "./entry/main.css")]}))))
