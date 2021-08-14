@@ -174,7 +174,7 @@
           defcomp comp-prompter (page slides position)
             let
                 next-page $ inc page
-                slide $ get slides next-page
+                slide $ if (contains? slides next-page) (get slides next-page) nil
                 first-line $ if (some? slide) (grab-headline slide) nil
               div
                 {} $ :style
@@ -364,8 +364,9 @@
                   :headlines $ dispatch! :router :slides
                 println "\"TODO"
         |persist-storage! $ quote
-          defn persist-storage! () $ js/localStorage.setItem (:storage-key config/site)
-            format-cirru-edn $ :store @*reel
+          defn persist-storage! (e)
+            js/localStorage.setItem (:storage-key config/site)
+              format-cirru-edn $ :store @*reel
         |mount-target $ quote
           def mount-target $ .querySelector js/document |.app
         |*reel $ quote
