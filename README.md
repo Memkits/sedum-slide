@@ -2,13 +2,13 @@
 Sedum Slide
 ----
 
-Demo http://repo.memkits.org/sedum-slide/
+Demo http://r.tiye.me/Memkits/sedum-slide/
 
 A small slide tool to be less disturbing.
 
 ### Workflow
 
-https://github.com/mvc-works/calcit-workflow
+https://github.com/calcit-lang/respo-calcit-workflow
 
 ### License
 
