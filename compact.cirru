@@ -7,19 +7,18 @@
     |app.comp.container $ {}
       :ns $ quote
         ns app.comp.container $ :require
-          [] respo-ui.core :refer $ [] hsl
-          [] respo-ui.core :as ui
-          [] respo.core :refer $ [] defcomp >> <> div button textarea span defeffect
-          [] respo.comp.space :refer $ [] =<
-          [] reel.comp.reel :refer $ [] comp-reel
-          [] respo-md.comp.md :refer $ [] comp-md
-          [] app.config :refer $ [] dev?
-          [] respo.comp.inspect :refer $ [] comp-inspect
-          [] feather.core :refer $ [] comp-i
-          [] app.comp.slides :refer $ [] comp-slides
-          [] app.comp.headlines :refer $ [] comp-headlines
-          [] clojure.string :as string
-          [] app.comp.edit-slide :refer $ [] comp-edit-slide
+          respo-ui.core :refer $ hsl
+          respo-ui.core :as ui
+          respo.core :refer $ defcomp >> <> div button textarea span defeffect
+          respo.comp.space :refer $ =<
+          reel.comp.reel :refer $ comp-reel
+          respo-md.comp.md :refer $ comp-md
+          app.config :refer $ dev?
+          respo.comp.inspect :refer $ comp-inspect
+          feather.core :refer $ comp-i
+          app.comp.slides :refer $ comp-slides
+          app.comp.headlines :refer $ comp-headlines
+          app.comp.edit-slide :refer $ comp-edit-slide
       :defs $ {}
         |comp-sidebar $ quote
           defcomp comp-sidebar (router)
@@ -110,19 +109,18 @@
     |app.comp.headlines $ {}
       :ns $ quote
         ns app.comp.headlines $ :require
-          [] respo-ui.core :refer $ [] hsl
-          [] respo-ui.core :as ui
-          [] respo.core :refer $ [] defcomp >> list-> <> div button textarea span
-          [] respo.comp.space :refer $ [] =<
-          [] reel.comp.reel :refer $ [] comp-reel
-          [] respo-md.comp.md :refer $ [] comp-md-block comp-md
-          [] app.config :refer $ [] dev?
-          [] respo.comp.inspect :refer $ [] comp-inspect
-          [] "\"highlight.js/lib/index" :as hljs
-          [] "\"escape-html" :as escape-html
-          [] clojure.string :as string
-          [] app.util :refer $ [] grab-headline
-          [] "\"md5" :default md5
+          respo-ui.core :refer $ hsl
+          respo-ui.core :as ui
+          respo.core :refer $ defcomp >> list-> <> div button textarea span
+          respo.comp.space :refer $ =<
+          reel.comp.reel :refer $ comp-reel
+          respo-md.comp.md :refer $ comp-md-block comp-md
+          app.config :refer $ dev?
+          respo.comp.inspect :refer $ comp-inspect
+          "\"highlight.js/lib/index" :as hljs
+          "\"escape-html" :as escape-html
+          app.util :refer $ grab-headline
+          "\"md5" :default md5
       :defs $ {}
         |comp-headlines $ quote
           defcomp comp-headlines (slides page)
@@ -157,18 +155,17 @@
     |app.comp.slides $ {}
       :ns $ quote
         ns app.comp.slides $ :require
-          [] respo-ui.core :refer $ [] hsl
-          [] respo-ui.core :as ui
-          [] respo.core :refer $ [] defcomp >> <> div button textarea span
-          [] respo.comp.space :refer $ [] =<
-          [] reel.comp.reel :refer $ [] comp-reel
-          [] respo-md.comp.md :refer $ [] comp-md-block comp-md
-          [] app.config :refer $ [] dev?
-          [] respo.comp.inspect :refer $ [] comp-inspect
-          [] "\"highlight.js/lib/index" :as hljs
-          [] "\"escape-html" :default escape-html
-          [] clojure.string :as string
-          [] app.util :refer $ [] grab-headline
+          respo-ui.core :refer $ hsl
+          respo-ui.core :as ui
+          respo.core :refer $ defcomp >> <> div button textarea span
+          respo.comp.space :refer $ =<
+          reel.comp.reel :refer $ comp-reel
+          respo-md.comp.md :refer $ comp-md-block comp-md
+          app.config :refer $ dev?
+          respo.comp.inspect :refer $ comp-inspect
+          "\"highlight.js" :default hljs
+          "\"escape-html" :default escape-html
+          app.util :refer $ grab-headline
       :defs $ {}
         |comp-prompter $ quote
           defcomp comp-prompter (page slides position)
@@ -226,7 +223,7 @@
                     let
                         code-lang $ get supported-langs lang
                       if (some? code-lang)
-                        .-value $ hljs/highlight code-lang code
+                        .-value $ .!highlight hljs code-lang code
                         do (js/console.log "\"not highlighting:" lang code-lang) (escape-html code)
               comp-pager page slides $ {} (:right 16) (:bottom 8)
               comp-prompter page slides $ {} (:bottom 48) (:right 16)
@@ -239,9 +236,8 @@
     |app.updater $ {}
       :ns $ quote
         ns app.updater $ :require
-          [] respo.cursor :refer $ [] update-states
-          [] clojure.string :as string
-          [] app.config :refer $ [] dev?
+          respo.cursor :refer $ update-states
+          app.config :refer $ dev?
       :defs $ {}
         |updater $ quote
           defn updater (store op op-data op-id op-time)
@@ -271,18 +267,17 @@
     |app.comp.edit-slide $ {}
       :ns $ quote
         ns app.comp.edit-slide $ :require
-          [] respo-ui.core :refer $ [] hsl
-          [] respo-ui.core :as ui
-          [] respo.core :refer $ [] defcomp >> <> div button textarea span defeffect
-          [] respo.comp.space :refer $ [] =<
-          [] reel.comp.reel :refer $ [] comp-reel
-          [] respo-md.comp.md :refer $ [] comp-md
-          [] app.config :refer $ [] dev?
-          [] respo.comp.inspect :refer $ [] comp-inspect
-          [] feather.core :refer $ [] comp-i
-          [] app.comp.slides :refer $ [] comp-slides
-          [] app.comp.headlines :refer $ [] comp-headlines
-          [] clojure.string :as string
+          respo-ui.core :refer $ hsl
+          respo-ui.core :as ui
+          respo.core :refer $ defcomp >> <> div button textarea span defeffect
+          respo.comp.space :refer $ =<
+          reel.comp.reel :refer $ comp-reel
+          respo-md.comp.md :refer $ comp-md
+          app.config :refer $ dev?
+          respo.comp.inspect :refer $ comp-inspect
+          feather.core :refer $ comp-i
+          app.comp.slides :refer $ comp-slides
+          app.comp.headlines :refer $ comp-headlines
       :defs $ {}
         |comp-edit-slide $ quote
           defcomp comp-edit-slide (states slide)
@@ -325,20 +320,20 @@
     |app.main $ {}
       :ns $ quote
         ns app.main $ :require
-          [] respo.core :refer $ [] render! clear-cache! realize-ssr!
-          [] app.comp.container :refer $ [] comp-container
-          [] app.updater :refer $ [] updater
-          [] app.schema :as schema
-          [] reel.util :refer $ [] listen-devtools!
-          [] reel.core :refer $ [] reel-updater refresh-reel
-          [] reel.schema :as reel-schema
-          [] app.config :as config
-          [] "\"highlight.js/lib/index" :as hljs
-          [] "\"highlight.js/lib/languages/clojure" :default clojure-lang
-          [] "\"highlight.js/lib/languages/bash" :default bash-lang
-          [] "\"highlight.js/lib/languages/javascript" :default javascript-lang
-          [] "\"highlight.js/lib/languages/typescript" :default typescript-lang
-          [] "\"highlight.js/lib/languages/json" :default json-lang
+          respo.core :refer $ render! clear-cache! realize-ssr!
+          app.comp.container :refer $ comp-container
+          app.updater :refer $ updater
+          app.schema :as schema
+          reel.util :refer $ listen-devtools!
+          reel.core :refer $ reel-updater refresh-reel
+          reel.schema :as reel-schema
+          app.config :as config
+          "\"highlight.js" :default hljs
+          "\"highlight.js/lib/languages/clojure" :default clojure-lang
+          "\"highlight.js/lib/languages/bash" :default bash-lang
+          "\"highlight.js/lib/languages/javascript" :default javascript-lang
+          "\"highlight.js/lib/languages/typescript" :default typescript-lang
+          "\"highlight.js/lib/languages/json" :default json-lang
       :defs $ {}
         |render-app! $ quote
           defn render-app! (renderer)
@@ -364,7 +359,7 @@
                   :headlines $ dispatch! :router :slides
                 println "\"TODO"
         |persist-storage! $ quote
-          defn persist-storage! (e)
+          defn persist-storage! (? e)
             js/localStorage.setItem (:storage-key config/site)
               format-cirru-edn $ :store @*reel
         |mount-target $ quote
@@ -375,11 +370,11 @@
           defn main! ()
             println "\"Running mode:" $ if config/dev? "\"dev" "\"release"
             if ssr? $ render-app! realize-ssr!
-            hljs/registerLanguage "\"clojure" clojure-lang
-            hljs/registerLanguage "\"bash" bash-lang
-            hljs/registerLanguage "\"javascript" javascript-lang
-            hljs/registerLanguage "\"ts" typescript-lang
-            hljs/registerLanguage "\"json" json-lang
+            .!registerLanguage hljs "\"clojure" clojure-lang
+            .!registerLanguage hljs "\"bash" bash-lang
+            .!registerLanguage hljs "\"javascript" javascript-lang
+            .!registerLanguage hljs "\"ts" typescript-lang
+            .!registerLanguage hljs "\"json" json-lang
             render-app! render!
             add-watch *reel :changes $ fn (r p) (render-app! render!)
             listen-devtools! |a dispatch!
@@ -407,58 +402,9 @@
               fn () (cb)
                 repeat! (* 1000 duration) cb
               * 1000 duration
-    |app.page $ {}
-      :ns $ quote
-        ns app.page
-          :require
-            [] respo.render.html :refer $ [] make-string
-            [] shell-page.core :refer $ [] make-page spit slurp
-            [] app.comp.container :refer $ [] comp-container
-            [] app.schema :as schema
-            [] reel.schema :as reel-schema
-            [] cljs.reader :refer $ [] read-string
-            [] app.config :as config
-            [] cumulo-util.build :refer $ [] get-ip!
-          :require-macros $ [] clojure.core.strint :refer ([] <<)
-      :defs $ {}
-        |base-info $ quote
-          def base-info $ {}
-            :title $ :title config/site
-            :icon $ :icon config/site
-            :ssr nil
-            :inline-html nil
-        |prod-page $ quote
-          defn prod-page () $ let
-              reel $ -> reel-schema/reel (assoc :base schema/store) (assoc :store schema/store)
-              html-content $ make-string (comp-container reel)
-              assets $ read-string (slurp |dist/assets.edn)
-              cdn $ if config/cdn? (:cdn-url config/site) "\""
-              prefix-cdn $ fn (x) (str cdn x)
-            make-page html-content $ merge base-info
-              {}
-                :styles $ [] (:release-ui config/site)
-                :scripts $ map
-                  fn (x)
-                    {} $ :src (-> x :output-name prefix-cdn)
-                  , assets
-                :ssr |respo-ssr
-                :inline-styles $ [] (slurp "\"./node_modules/highlight.js/styles/github.css") (slurp |./entry/main.css)
-        |main! $ quote
-          defn main! ()
-            println "\"Running mode:" $ if config/dev? "\"dev" "\"release"
-            if config/dev?
-              spit "\"target/index.html" $ dev-page
-              spit "\"dist/index.html" $ prod-page
-        |dev-page $ quote
-          defn dev-page () $ make-page |
-            merge base-info $ {}
-              :styles $ [] (<< "\"http://~(get-ip!):8100/main.css") "\"/entry/main.css"
-              :scripts $ []
-                {} $ :src |/client.js
-              :inline-styles $ [] (slurp "\"./node_modules/highlight.js/styles/github.css")
     |app.util $ {}
       :ns $ quote
-        ns app.util $ :require ([] clojure.string :as string)
+        ns app.util $ :require
       :defs $ {}
         |grab-headline $ quote
           defn grab-headline (slide)
@@ -469,12 +415,6 @@
     |app.config $ {}
       :ns $ quote (ns app.config)
       :defs $ {}
-        |cdn? $ quote
-          def cdn? $ cond
-              exists? js/window
-              , false
-            (exists? js/process) (= "\"true" js/process.env.cdn)
-            :else false
         |dev? $ quote
           def dev? $ = "\"dev" (get-env "\"mode")
         |site $ quote
