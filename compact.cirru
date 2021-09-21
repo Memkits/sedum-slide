@@ -65,17 +65,11 @@
               [] (effect-focus)
                 div
                   {} $ :style
-                    merge ui/flex ui/column $ {} (:font-family ui/font-code) (:padding 16)
-                  textarea $ {}
-                    :style $ merge ui/textarea ui/flex
-                      {} (:width "\"100%") (:height "\"80%") (:padding-bottom 120) (:font-family ui/font-code) (:font-size 20)
-                    :value content
-                    :placeholder "\"Slides"
-                    :on-input $ fn (e d!)
-                      d! cursor $ assoc state :content (:value e)
-                  =< nil 16
+                    merge ui/flex ui/column $ {} (:font-family ui/font-code)
+                  =< nil 8
                   div
-                    {} $ :style ui/row-parted
+                    {} $ :style
+                      merge ui/row-parted $ {} (:padding "\"4px 16px")
                     span $ {}
                     button
                       {} (:style ui/button)
@@ -83,8 +77,31 @@
                           d! :render-slides $ to-calcit-data (.!split content pattern-divider)
                           d! cursor nil
                       <> "\"Split text"
+                  textarea $ {}
+                    :style $ merge ui/flex ui/textarea
+                      {} (:height "\"80%") (:margin "\"8px 16px") (:padding "\"16px 16px 160px 16px") (:font-family ui/font-code) (:font-size 20)
+                        :border $ str "\"1px solid " (hsl 0 0 80)
+                    :value content
+                    :placeholder "\"Slides"
+                    :on-input $ fn (e d!)
+                      d! cursor $ assoc state :content (:value e)
+                    :on-keydown $ fn (e d!)
+                      let
+                          event $ :event e
+                        if
+                          or
+                            and
+                              = "\"e" $ .-key event
+                              .-shiftKey event
+                              .-metaKey event
+                            and
+                              = 13 $ .-keyCode event
+                              .-metaKey event
+                          do
+                            d! :render-slides $ to-calcit-data (.!split content pattern-divider)
+                            d! cursor nil
         |pattern-divider $ quote
-          def pattern-divider $ new js/RegExp "\"\\n-{4,}\\n"
+          def pattern-divider $ new js/RegExp "\"\\n-{3,}\\n"
         |effect-focus $ quote
           defeffect effect-focus () (action el *local at-place?)
             when (= :mount action)
@@ -288,9 +305,19 @@
               [] (effect-focus)
                 div
                   {} $ :style (merge ui/expand ui/column)
+                  =< nil 8
+                  div
+                    {} $ :style
+                      merge ui/row-parted $ {} (:padding "\"4px 16px")
+                    span $ {}
+                    button $ {} (:style ui/button) (:inner-text "\"Submit")
+                      :on-click $ fn (e d!)
+                        d! :edit-slide $ :draft state
+                        d! cursor nil
+                        d! :router :slides
                   textarea $ {}
                     :style $ merge ui/expand ui/textarea
-                      {} (:font-family ui/font-code) (:font-size 24) (:padding 16) (:line-height 1.6)
+                      {} (:font-family ui/font-code) (:font-size 24) (:margin "\"8px 16px") (:padding "\"16px 16px 160px 16px") (:line-height 1.6)
                         :border $ str "\"1px solid " (hsl 0 0 80)
                     :value $ :draft state
                     :on-input $ fn (e d!)
@@ -304,15 +331,6 @@
                           d! :edit-slide $ :draft state
                           d! cursor nil
                           d! :router :slides
-                  div
-                    {} $ :style
-                      merge ui/row-parted $ {} (:padding 16)
-                    span $ {}
-                    button $ {} (:style ui/button) (:inner-text "\"Submit")
-                      :on-click $ fn (e d!)
-                        d! :edit-slide $ :draft state
-                        d! cursor nil
-                        d! :router :slides
         |effect-focus $ quote
           defeffect effect-focus () (action el *local at-place?)
             case-default action nil $ :mount
@@ -334,10 +352,11 @@
           "\"highlight.js/lib/languages/javascript" :default javascript-lang
           "\"highlight.js/lib/languages/typescript" :default typescript-lang
           "\"highlight.js/lib/languages/json" :default json-lang
+          "\"./calcit.build-errors" :default build-errors
+          "\"bottom-tip" :default hud!
       :defs $ {}
         |render-app! $ quote
-          defn render-app! (renderer)
-            renderer mount-target (comp-container @*reel) dispatch!
+          defn render-app! () $ render! mount-target (comp-container @*reel) dispatch!
         |ssr? $ quote
           def ssr? $ some? (js/document.querySelector |meta.respo-ssr)
         |handle-direction! $ quote
@@ -353,11 +372,10 @@
                 .-metaKey event
               let
                   router $ :router (:store @*reel)
-                case-default router nil
+                case-default (w-log router) (println "\"TODO")
                   :edit-slide $ println "\"do..."
-                  :slides $ dispatch! :router :edit-slide
+                  :slides $ if (.-shiftKey event) (dispatch! :router :home) (dispatch! :router :edit-slide)
                   :headlines $ dispatch! :router :slides
-                println "\"TODO"
         |persist-storage! $ quote
           defn persist-storage! (? e)
             js/localStorage.setItem (:storage-key config/site)
@@ -368,15 +386,16 @@
           defatom *reel $ -> reel-schema/reel (assoc :base schema/store) (assoc :store schema/store)
         |main! $ quote
           defn main! ()
-            println "\"Running mode:" $ if config/dev? "\"dev" "\"release"
-            if ssr? $ render-app! realize-ssr!
+            println "\"Running mode:" $ if config/dev?
+              do (load-console-formatter!) "\"dev"
+              , "\"release"
             .!registerLanguage hljs "\"clojure" clojure-lang
             .!registerLanguage hljs "\"bash" bash-lang
             .!registerLanguage hljs "\"javascript" javascript-lang
             .!registerLanguage hljs "\"ts" typescript-lang
             .!registerLanguage hljs "\"json" json-lang
-            render-app! render!
-            add-watch *reel :changes $ fn (r p) (render-app! render!)
+            render-app!
+            add-watch *reel :changes $ fn (r p) (render-app!)
             listen-devtools! |a dispatch!
             .addEventListener js/window |beforeunload persist-storage!
             repeat! 60 persist-storage!
@@ -393,9 +412,12 @@
               println "\"Dispatch:" op op-data
             reset! *reel $ reel-updater updater @*reel op op-data
         |reload! $ quote
-          defn reload! () (clear-cache!)
-            reset! *reel $ refresh-reel @*reel schema/store updater
-            println "|Code updated."
+          defn reload! () $ if (nil? build-errors)
+            do (remove-watch *reel :changes) (clear-cache!)
+              add-watch *reel :changes $ fn (reel prev) (render-app!)
+              reset! *reel $ refresh-reel @*reel schema/store updater
+              hud! "\"ok~" "\"Ok"
+            hud! "\"error" build-errors
         |repeat! $ quote
           defn repeat! (duration cb)
             js/setTimeout
