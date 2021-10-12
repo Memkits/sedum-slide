@@ -234,7 +234,9 @@
                   :background-color $ hsl 0 0 100
                   :position :relative
               comp-md-block
-                get slides $ or page 0
+                either
+                  get slides $ or page 0
+                  , "\""
                 {} (:style style-md-area) (:class-name "\"slide-area")
                   :highlight $ fn (code lang)
                     let
@@ -408,7 +410,7 @@
         |dispatch! $ quote
           defn dispatch! (op op-data)
             when
-              and (not= op :states) (not= op :hydrate-storage)
+              and config/dev? (not= op :states) (not= op :hydrate-storage)
               println "\"Dispatch:" op op-data
             reset! *reel $ reel-updater updater @*reel op op-data
         |reload! $ quote
