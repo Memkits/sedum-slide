@@ -31,9 +31,9 @@
                   :flex-shrink 0
                   :font-size 24
               render-entry :slides :airplay router
-              render-entry :edit-slide :edit-2 router
               render-entry :headlines :info router
               render-entry :home :code router
+              render-entry :edit-slide :edit-2 router
         |comp-container $ quote
           defcomp comp-container (reel)
             let
@@ -152,23 +152,42 @@
                 -> slides $ map-indexed
                   fn (idx slide)
                     [] (md5 slide)
-                      div
-                        {}
-                          :style $ merge ui/row-middle
-                            {} $ :cursor :pointer
-                          :on-click $ fn (e d!) (d! :page idx)
-                        <> (inc idx)
-                          merge
-                            {}
-                              :color $ hsl 0 0 90
-                              :font-family ui/font-code
-                              :display :inline-block
-                              :min-width 40
-                              :text-align :right
-                            if (= page idx)
-                              {} $ :color :blue
-                        =< 16 nil
-                        comp-md-block (grab-headline slide) ({})
+                      let
+                          headline $ grab-headline slide
+                          indent $ get-indent (or headline "\"")
+                        div
+                          {}
+                            :style $ merge ui/row-middle
+                              {} $ :cursor :pointer
+                            :on-click $ fn (e d!) (d! :page idx)
+                          div $ {}
+                            :style $ {}
+                              :width $ * 20
+                                dec $ pow 2 indent
+                          <> (inc idx)
+                            merge
+                              {}
+                                :color $ hsl 0 0 90
+                                :font-family ui/font-code
+                                :display :inline-block
+                                :min-width 40
+                                :text-align :right
+                              if (= page idx)
+                                {} $ :color :blue
+                          =< 16 nil
+                          if (some? headline)
+                            comp-md-block headline $ {}
+                            span $ {} (:inner-text "\"undefined")
+                              :style $ {} (:color :red)
+        |get-indent $ quote
+          defn get-indent (text)
+            let
+                ret $ .!match text re-sharp
+              if (some? ret)
+                - (.-length ret) 1
+                , 0
+        |re-sharp $ quote
+          def re-sharp $ new js/RegExp "\"#" "\"g"
     |app.comp.slides $ {}
       :ns $ quote
         ns app.comp.slides $ :require
@@ -214,38 +233,57 @@
                     :color $ hsl 0 0 1 0.6
                     :font-size 24
                   , position
+              span $ {}
+                :inner-text $ &let
+                  now $ new js/Date
+                  str
+                    .!padStart
+                      str $ .!getHours now
+                      , 2 "\"0"
+                    , "\":" $ .!padStart
+                      str $ .!getMinutes now
+                      , 2 "\"0"
+                :style $ {} (:font-family ui/font-code) (:font-size 20) (:cursor :pointer)
+                  :color $ hsl 200 70 80
+                :on-click $ fn (e d!) (d! :add-slide page)
+                :title "\"New page"
+              =< 24 0
               span
                 {}
                   :style $ {} (:cursor :pointer)
                   :on-click $ fn (e d!) (d! :page 0)
-                <> $ inc page
+                <> page
               <> "\"/"
               span
                 {}
                   :style $ {} (:cursor :pointer)
                   :on-click $ fn (e d!)
                     d! :page $ dec (count slides)
-                <> $ count slides
+                <> $ dec (count slides)
         |comp-slides $ quote
           defcomp comp-slides (slides page)
-            div
-              {} $ :style
-                merge ui/flex $ {}
-                  :background-color $ hsl 0 0 100
-                  :position :relative
-              comp-md-block
-                either
-                  get slides $ or page 0
-                  , "\""
-                {} (:style style-md-area) (:class-name "\"slide-area")
-                  :highlight $ fn (code lang)
-                    let
-                        code-lang $ get supported-langs lang
-                      if (some? code-lang)
-                        .-value $ .!highlight hljs code-lang code
-                        do (js/console.log "\"not highlighting:" lang code-lang) (escape-html code)
-              comp-pager page slides $ {} (:right 16) (:bottom 8)
-              comp-prompter page slides $ {} (:bottom 48) (:right 16)
+            let
+                content $ get slides (or page 0)
+              div
+                {} $ :style
+                  merge ui/flex $ {}
+                    :background-color $ hsl 0 0 100
+                    :position :relative
+                if (blank? content)
+                  div
+                    {} $ :style
+                      {} (:color :red) (:padding "\"20px") (:font-size 20)
+                    <> $ str "\"undefined page: " page
+                  comp-md-block (either content "\"")
+                    {} (:style style-md-area) (:class-name "\"slide-area")
+                      :highlight $ fn (code lang)
+                        let
+                            code-lang $ get supported-langs lang
+                          if (some? code-lang)
+                            .-value $ .!highlight hljs code-lang code
+                            do (js/console.log "\"not highlighting:" lang code-lang) (escape-html code)
+                comp-pager page slides $ {} (:right 16) (:bottom 8)
+                comp-prompter page slides $ {} (:bottom 48) (:right 16)
         |style-md-area $ quote
           def style-md-area $ {} (:overflow :auto) (:position :absolute) (:top 0) (:left 0) (:width "\"100%") (:height "\"100%") (:padding 40) (:font-size 40)
             :color $ hsl 0 0 30
@@ -280,9 +318,19 @@
                     inc page
                     , page
               :hydrate-storage op-data
-              :edit-slide $ assoc-in store
-                [] :slides $ :page store
-                , op-data
+              :edit-slide $ let
+                  page $ :page store
+                if
+                  and
+                    .blank? $ or op-data "\""
+                    < (inc page)
+                      count $ :slides store
+                  dissoc-in store $ [] :slides page
+                  assoc-in store ([] :slides page) op-data
+              :add-slide $ -> store
+                update :slides $ fn (slides) (.assoc-after slides op-data "\"(New page)")
+                update :page inc
+                assoc :router :edit-slide
     |app.comp.edit-slide $ {}
       :ns $ quote
         ns app.comp.edit-slide $ :require
@@ -324,6 +372,7 @@
                     :value $ :draft state
                     :on-input $ fn (e d!)
                       d! cursor $ assoc state :draft (:value e)
+                    :placeholder "\"(empty page are going to be removed...)"
                     :on-keydown $ fn (e d!)
                       let
                           event $ :event e
@@ -374,7 +423,7 @@
                 .-metaKey event
               let
                   router $ :router (:store @*reel)
-                case-default (w-log router) (println "\"TODO")
+                case-default router (println "\"TODO")
                   :edit-slide $ println "\"do..."
                   :slides $ if (.-shiftKey event) (dispatch! :router :home) (dispatch! :router :edit-slide)
                   :headlines $ dispatch! :router :slides
