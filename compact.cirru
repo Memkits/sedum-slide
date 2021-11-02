@@ -235,9 +235,8 @@
             div
               {} $ :style
                 merge
-                  {} (:position :absolute)
+                  {} (:position :absolute) (:font-family ui/font-code) (:font-size 24)
                     :color $ hsl 0 0 1 0.6
-                    :font-size 24
                   , position
               span $ {}
                 :inner-text $ &let
@@ -249,11 +248,11 @@
                     , "\":" $ .!padStart
                       str $ .!getMinutes now
                       , 2 "\"0"
-                :style $ {} (:font-family ui/font-code) (:font-size 20) (:cursor :pointer)
+                :style $ {} (:font-size 20) (:cursor :pointer)
                   :color $ hsl 200 70 80
                 :on-click $ fn (e d!) (d! :add-slide page)
                 :title "\"New page"
-              =< 24 0
+              =< 20 0
               span
                 {}
                   :style $ {} (:cursor :pointer)
