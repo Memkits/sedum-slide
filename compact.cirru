@@ -155,10 +155,17 @@
                       let
                           headline $ grab-headline slide
                           indent $ get-indent (or headline "\"")
+                          selected? $ = page idx
                         div
                           {}
                             :style $ merge ui/row-middle
-                              {} $ :cursor :pointer
+                              {} (:cursor :pointer)
+                                :opacity $ - 1
+                                  * 0.2 $ pow indent 1.4
+                                :border-bottom $ if selected?
+                                  str "\"1px solid " $ hsl 200 80 60
+                                  , nil
+                                :margin-bottom $ if selected? -1 nil
                             :on-click $ fn (e d!) (d! :page idx)
                           div $ {}
                             :style $ {}
@@ -172,8 +179,7 @@
                                 :display :inline-block
                                 :min-width 40
                                 :text-align :right
-                              if (= page idx)
-                                {} $ :color :blue
+                              if selected? $ {} (:color :blue)
                           =< 16 nil
                           if (some? headline)
                             comp-md-block headline $ {}
@@ -427,6 +433,11 @@
                   :edit-slide $ println "\"do..."
                   :slides $ if (.-shiftKey event) (dispatch! :router :home) (dispatch! :router :edit-slide)
                   :headlines $ dispatch! :router :slides
+            when
+              and
+                = "\"i" $ .-key event
+                .-metaKey event
+              dispatch! :router :headlines
         |persist-storage! $ quote
           defn persist-storage! (? e)
             js/localStorage.setItem (:storage-key config/site)
