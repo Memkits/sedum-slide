@@ -1,39 +1,11 @@
 
 {} (:package |app)
-  :configs $ {} (:init-fn |app.main/main!) (:reload-fn |app.main/reload!)
+  :configs $ {} (:init-fn |app.main/main!) (:reload-fn |app.main/reload!) (:version |0.0.1)
     :modules $ [] |respo.calcit/ |lilac/ |memof/ |respo-ui.calcit/ |respo-markdown.calcit/ |reel.calcit/ |respo-feather.calcit/
-    :version |0.0.1
+  :entries $ {}
   :files $ {}
     |app.comp.container $ {}
-      :ns $ quote
-        ns app.comp.container $ :require
-          respo-ui.core :refer $ hsl
-          respo-ui.core :as ui
-          respo.core :refer $ defcomp >> <> div button textarea span defeffect
-          respo.comp.space :refer $ =<
-          reel.comp.reel :refer $ comp-reel
-          respo-md.comp.md :refer $ comp-md
-          app.config :refer $ dev?
-          respo.comp.inspect :refer $ comp-inspect
-          feather.core :refer $ comp-i
-          app.comp.slides :refer $ comp-slides
-          app.comp.headlines :refer $ comp-headlines
-          app.comp.edit-slide :refer $ comp-edit-slide
       :defs $ {}
-        |comp-sidebar $ quote
-          defcomp comp-sidebar (router)
-            div
-              {} $ :style
-                merge ui/column $ {} (:min-width 48)
-                  :background-color $ hsl 0 0 94
-                  :align-items :center
-                  :padding 16
-                  :flex-shrink 0
-                  :font-size 24
-              render-entry :slides :airplay router
-              render-entry :headlines :info router
-              render-entry :home :code router
-              render-entry :edit-slide :edit-2 router
         |comp-container $ quote
           defcomp comp-container (reel)
             let
@@ -100,12 +72,26 @@
                           do
                             d! :render-slides $ to-calcit-data (.!split content pattern-divider)
                             d! cursor nil
-        |pattern-divider $ quote
-          def pattern-divider $ new js/RegExp "\"\\n-{3,}\\n"
+        |comp-sidebar $ quote
+          defcomp comp-sidebar (router)
+            div
+              {} $ :style
+                merge ui/column $ {} (:min-width 48)
+                  :background-color $ hsl 0 0 94
+                  :align-items :center
+                  :padding 16
+                  :flex-shrink 0
+                  :font-size 24
+              render-entry :slides :airplay router
+              render-entry :headlines :info router
+              render-entry :home :code router
+              render-entry :edit-slide :edit-2 router
         |effect-focus $ quote
           defeffect effect-focus () (action el *local at-place?)
             when (= :mount action)
               .!focus $ .!querySelector el "\"textarea"
+        |pattern-divider $ quote
+          def pattern-divider $ new js/RegExp "\"\\n-{3,}\\n"
         |render-entry $ quote
           defn render-entry (router-name icon current-page)
             span
@@ -114,30 +100,76 @@
                   {} (:cursor :pointer) (:margin "\"16px 0")
                 :on-click $ fn (e d!) (d! :router router-name)
               comp-i icon 18 $ if (= current-page router-name) "\"black" "\"#ccc"
-    |app.schema $ {}
-      :ns $ quote (ns app.schema)
-      :defs $ {}
-        |store $ quote
-          def store $ {}
-            :states $ {}
-            :router :home
-            :slides $ []
-            :page 0
-    |app.comp.headlines $ {}
       :ns $ quote
-        ns app.comp.headlines $ :require
+        ns app.comp.container $ :require
           respo-ui.core :refer $ hsl
           respo-ui.core :as ui
-          respo.core :refer $ defcomp >> list-> <> div button textarea span
+          respo.core :refer $ defcomp >> <> div button textarea span defeffect
           respo.comp.space :refer $ =<
           reel.comp.reel :refer $ comp-reel
-          respo-md.comp.md :refer $ comp-md-block comp-md
+          respo-md.comp.md :refer $ comp-md
           app.config :refer $ dev?
           respo.comp.inspect :refer $ comp-inspect
-          "\"highlight.js/lib/index" :as hljs
-          "\"escape-html" :as escape-html
-          app.util :refer $ grab-headline
-          "\"md5" :default md5
+          feather.core :refer $ comp-i
+          app.comp.slides :refer $ comp-slides
+          app.comp.headlines :refer $ comp-headlines
+          app.comp.edit-slide :refer $ comp-edit-slide
+    |app.comp.edit-slide $ {}
+      :defs $ {}
+        |comp-edit-slide $ quote
+          defcomp comp-edit-slide (states slide)
+            let
+                cursor $ :cursor states
+                state $ or (:data states)
+                  {} $ :draft slide
+              [] (effect-focus)
+                div
+                  {} $ :style (merge ui/expand ui/column)
+                  =< nil 8
+                  div
+                    {} $ :style
+                      merge ui/row-parted $ {} (:padding "\"4px 16px")
+                    span $ {}
+                    button $ {} (:style ui/button) (:inner-text "\"Submit")
+                      :on-click $ fn (e d!)
+                        d! :edit-slide $ :draft state
+                        d! cursor nil
+                        d! :router :slides
+                  textarea $ {}
+                    :style $ merge ui/expand ui/textarea
+                      {} (:font-family ui/font-code) (:font-size 24) (:margin "\"8px 16px") (:padding "\"16px 16px 160px 16px") (:line-height 1.6)
+                        :border $ str "\"1px solid " (hsl 0 0 80)
+                    :value $ :draft state
+                    :on-input $ fn (e d!)
+                      d! cursor $ assoc state :draft (:value e)
+                    :placeholder "\"(empty page are going to be removed...)"
+                    :on-keydown $ fn (e d!)
+                      let
+                          event $ :event e
+                        when
+                          and (.-metaKey event)
+                            = "\"e" $ .-key event
+                          d! :edit-slide $ :draft state
+                          d! cursor nil
+                          d! :router :slides
+        |effect-focus $ quote
+          defeffect effect-focus () (action el *local at-place?)
+            case-default action nil $ :mount
+              -> el (.!querySelector "\"textarea") (.!focus)
+      :ns $ quote
+        ns app.comp.edit-slide $ :require
+          respo-ui.core :refer $ hsl
+          respo-ui.core :as ui
+          respo.core :refer $ defcomp >> <> div button textarea span defeffect
+          respo.comp.space :refer $ =<
+          reel.comp.reel :refer $ comp-reel
+          respo-md.comp.md :refer $ comp-md
+          app.config :refer $ dev?
+          respo.comp.inspect :refer $ comp-inspect
+          feather.core :refer $ comp-i
+          app.comp.slides :refer $ comp-slides
+          app.comp.headlines :refer $ comp-headlines
+    |app.comp.headlines $ {}
       :defs $ {}
         |comp-headlines $ quote
           defcomp comp-headlines (slides page)
@@ -194,42 +226,22 @@
                 , 0
         |re-sharp $ quote
           def re-sharp $ new js/RegExp "\"#" "\"g"
-    |app.comp.slides $ {}
       :ns $ quote
-        ns app.comp.slides $ :require
+        ns app.comp.headlines $ :require
           respo-ui.core :refer $ hsl
           respo-ui.core :as ui
-          respo.core :refer $ defcomp >> <> div button textarea span
+          respo.core :refer $ defcomp >> list-> <> div button textarea span
           respo.comp.space :refer $ =<
           reel.comp.reel :refer $ comp-reel
           respo-md.comp.md :refer $ comp-md-block comp-md
           app.config :refer $ dev?
           respo.comp.inspect :refer $ comp-inspect
-          "\"highlight.js" :default hljs
-          "\"escape-html" :default escape-html
+          "\"highlight.js/lib/index" :as hljs
+          "\"escape-html" :as escape-html
           app.util :refer $ grab-headline
+          "\"md5" :default md5
+    |app.comp.slides $ {}
       :defs $ {}
-        |comp-prompter $ quote
-          defcomp comp-prompter (page slides position)
-            let
-                next-page $ inc page
-                slide $ if (contains? slides next-page) (get slides next-page) nil
-                first-line $ if (some? slide) (grab-headline slide) nil
-              div
-                {} $ :style
-                  merge
-                    {} $ :position :absolute
-                    , position
-                if (some? first-line)
-                  span
-                    {} $ :style
-                      {}
-                        :color $ hsl 0 0 70
-                        :font-size 24
-                    comp-md first-line
-                  <> "\"No preview" $ {}
-                    :color $ hsl 0 0 90
-                    :font-style :italic
         |comp-pager $ quote
           defcomp comp-pager (page slides position)
             div
@@ -265,6 +277,27 @@
                   :on-click $ fn (e d!)
                     d! :page $ dec (count slides)
                 <> $ dec (count slides)
+        |comp-prompter $ quote
+          defcomp comp-prompter (page slides position)
+            let
+                next-page $ inc page
+                slide $ if (contains? slides next-page) (get slides next-page) nil
+                first-line $ if (some? slide) (grab-headline slide) nil
+              div
+                {} $ :style
+                  merge
+                    {} $ :position :absolute
+                    , position
+                if (some? first-line)
+                  span
+                    {} $ :style
+                      {}
+                        :color $ hsl 0 0 70
+                        :font-size 24
+                    comp-md first-line
+                  <> "\"No preview" $ {}
+                    :color $ hsl 0 0 90
+                    :font-style :italic
         |comp-slides $ quote
           defcomp comp-slides (slides page)
             let
@@ -285,7 +318,8 @@
                         let
                             code-lang $ get supported-langs lang
                           if (some? code-lang)
-                            .-value $ .!highlight hljs code-lang code
+                            .-value $ .!highlight hljs code
+                              js-object $ :language code-lang
                             do (js/console.log "\"not highlighting:" lang code-lang) (escape-html code)
                 comp-pager page slides $ {} (:right 16) (:bottom 8)
                 comp-prompter page slides $ {} (:bottom 48) (:right 16)
@@ -295,11 +329,130 @@
             :padding-bottom 160
         |supported-langs $ quote
           def supported-langs $ {} ("\"clojure" "\"clojure") ("\"bash" "\"bash") ("\"clj" "\"clojure") ("\"javascript" "\"javascript") ("\"js" "\"javascript") ("\"ts" "\"typescript") ("\"json" "\"json")
-    |app.updater $ {}
       :ns $ quote
-        ns app.updater $ :require
-          respo.cursor :refer $ update-states
+        ns app.comp.slides $ :require
+          respo-ui.core :refer $ hsl
+          respo-ui.core :as ui
+          respo.core :refer $ defcomp >> <> div button textarea span
+          respo.comp.space :refer $ =<
+          reel.comp.reel :refer $ comp-reel
+          respo-md.comp.md :refer $ comp-md-block comp-md
           app.config :refer $ dev?
+          respo.comp.inspect :refer $ comp-inspect
+          "\"highlight.js" :default hljs
+          "\"escape-html" :default escape-html
+          app.util :refer $ grab-headline
+    |app.config $ {}
+      :defs $ {}
+        |dev? $ quote
+          def dev? $ = "\"dev" (get-env "\"mode")
+        |site $ quote
+          def site $ {} (:title "\"Sedum Slide") (:icon "\"http://cdn.tiye.me/logo/sedum-icon.png") (:storage-key "\"sedum-slide")
+      :ns $ quote (ns app.config)
+    |app.main $ {}
+      :defs $ {}
+        |*reel $ quote
+          defatom *reel $ -> reel-schema/reel (assoc :base schema/store) (assoc :store schema/store)
+        |dispatch! $ quote
+          defn dispatch! (op op-data)
+            when
+              and config/dev? (not= op :states) (not= op :hydrate-storage)
+              println "\"Dispatch:" op op-data
+            reset! *reel $ reel-updater updater @*reel op op-data
+        |handle-direction! $ quote
+          defn handle-direction! (event)
+            when
+              = :slides $ :router (:store @*reel)
+              case-default (.-key event) nil
+                "\"ArrowRight" $ dispatch! :slide-down nil
+                "\"ArrowLeft" $ dispatch! :slide-up nil
+            when
+              and
+                = "\"e" $ .-key event
+                .-metaKey event
+              let
+                  router $ :router (:store @*reel)
+                case-default router (println "\"TODO")
+                  :edit-slide $ println "\"do..."
+                  :slides $ if (.-shiftKey event) (dispatch! :router :home) (dispatch! :router :edit-slide)
+                  :headlines $ dispatch! :router :slides
+            when
+              and
+                = "\"i" $ .-key event
+                .-metaKey event
+              dispatch! :router :headlines
+        |main! $ quote
+          defn main! ()
+            println "\"Running mode:" $ if config/dev?
+              do (load-console-formatter!) "\"dev"
+              , "\"release"
+            .!registerLanguage hljs "\"clojure" clojure-lang
+            .!registerLanguage hljs "\"bash" bash-lang
+            .!registerLanguage hljs "\"javascript" javascript-lang
+            .!registerLanguage hljs "\"ts" typescript-lang
+            .!registerLanguage hljs "\"json" json-lang
+            render-app!
+            add-watch *reel :changes $ fn (r p) (render-app!)
+            listen-devtools! |a dispatch!
+            .addEventListener js/window |beforeunload persist-storage!
+            repeat! 60 persist-storage!
+            let
+                raw $ .!getItem js/localStorage (:storage-key config/site)
+              when (some? raw)
+                dispatch! :hydrate-storage $ parse-cirru-edn raw
+            .!addEventListener js/window "\"keydown" handle-direction!
+            println "|App started."
+        |mount-target $ quote
+          def mount-target $ .querySelector js/document |.app
+        |persist-storage! $ quote
+          defn persist-storage! (? e)
+            js/localStorage.setItem (:storage-key config/site)
+              format-cirru-edn $ :store @*reel
+        |reload! $ quote
+          defn reload! () $ if (nil? build-errors)
+            do (remove-watch *reel :changes) (clear-cache!)
+              add-watch *reel :changes $ fn (reel prev) (render-app!)
+              reset! *reel $ refresh-reel @*reel schema/store updater
+              hud! "\"ok~" "\"Ok"
+            hud! "\"error" build-errors
+        |render-app! $ quote
+          defn render-app! () $ render! mount-target (comp-container @*reel) dispatch!
+        |repeat! $ quote
+          defn repeat! (duration cb)
+            js/setTimeout
+              fn () (cb)
+                repeat! (* 1000 duration) cb
+              * 1000 duration
+        |ssr? $ quote
+          def ssr? $ some? (js/document.querySelector |meta.respo-ssr)
+      :ns $ quote
+        ns app.main $ :require
+          respo.core :refer $ render! clear-cache! realize-ssr!
+          app.comp.container :refer $ comp-container
+          app.updater :refer $ updater
+          app.schema :as schema
+          reel.util :refer $ listen-devtools!
+          reel.core :refer $ reel-updater refresh-reel
+          reel.schema :as reel-schema
+          app.config :as config
+          "\"highlight.js" :default hljs
+          "\"highlight.js/lib/languages/clojure" :default clojure-lang
+          "\"highlight.js/lib/languages/bash" :default bash-lang
+          "\"highlight.js/lib/languages/javascript" :default javascript-lang
+          "\"highlight.js/lib/languages/typescript" :default typescript-lang
+          "\"highlight.js/lib/languages/json" :default json-lang
+          "\"./calcit.build-errors" :default build-errors
+          "\"bottom-tip" :default hud!
+    |app.schema $ {}
+      :defs $ {}
+        |store $ quote
+          def store $ {}
+            :states $ {}
+            :router :home
+            :slides $ []
+            :page 0
+      :ns $ quote (ns app.schema)
+    |app.updater $ {}
       :defs $ {}
         |updater $ quote
           defn updater (store op op-data op-id op-time)
@@ -336,158 +489,11 @@
                 update :slides $ fn (slides) (.assoc-after slides op-data "\"(New page)")
                 update :page inc
                 assoc :router :edit-slide
-    |app.comp.edit-slide $ {}
       :ns $ quote
-        ns app.comp.edit-slide $ :require
-          respo-ui.core :refer $ hsl
-          respo-ui.core :as ui
-          respo.core :refer $ defcomp >> <> div button textarea span defeffect
-          respo.comp.space :refer $ =<
-          reel.comp.reel :refer $ comp-reel
-          respo-md.comp.md :refer $ comp-md
+        ns app.updater $ :require
+          respo.cursor :refer $ update-states
           app.config :refer $ dev?
-          respo.comp.inspect :refer $ comp-inspect
-          feather.core :refer $ comp-i
-          app.comp.slides :refer $ comp-slides
-          app.comp.headlines :refer $ comp-headlines
-      :defs $ {}
-        |comp-edit-slide $ quote
-          defcomp comp-edit-slide (states slide)
-            let
-                cursor $ :cursor states
-                state $ or (:data states)
-                  {} $ :draft slide
-              [] (effect-focus)
-                div
-                  {} $ :style (merge ui/expand ui/column)
-                  =< nil 8
-                  div
-                    {} $ :style
-                      merge ui/row-parted $ {} (:padding "\"4px 16px")
-                    span $ {}
-                    button $ {} (:style ui/button) (:inner-text "\"Submit")
-                      :on-click $ fn (e d!)
-                        d! :edit-slide $ :draft state
-                        d! cursor nil
-                        d! :router :slides
-                  textarea $ {}
-                    :style $ merge ui/expand ui/textarea
-                      {} (:font-family ui/font-code) (:font-size 24) (:margin "\"8px 16px") (:padding "\"16px 16px 160px 16px") (:line-height 1.6)
-                        :border $ str "\"1px solid " (hsl 0 0 80)
-                    :value $ :draft state
-                    :on-input $ fn (e d!)
-                      d! cursor $ assoc state :draft (:value e)
-                    :placeholder "\"(empty page are going to be removed...)"
-                    :on-keydown $ fn (e d!)
-                      let
-                          event $ :event e
-                        when
-                          and (.-metaKey event)
-                            = "\"e" $ .-key event
-                          d! :edit-slide $ :draft state
-                          d! cursor nil
-                          d! :router :slides
-        |effect-focus $ quote
-          defeffect effect-focus () (action el *local at-place?)
-            case-default action nil $ :mount
-              -> el (.!querySelector "\"textarea") (.!focus)
-    |app.main $ {}
-      :ns $ quote
-        ns app.main $ :require
-          respo.core :refer $ render! clear-cache! realize-ssr!
-          app.comp.container :refer $ comp-container
-          app.updater :refer $ updater
-          app.schema :as schema
-          reel.util :refer $ listen-devtools!
-          reel.core :refer $ reel-updater refresh-reel
-          reel.schema :as reel-schema
-          app.config :as config
-          "\"highlight.js" :default hljs
-          "\"highlight.js/lib/languages/clojure" :default clojure-lang
-          "\"highlight.js/lib/languages/bash" :default bash-lang
-          "\"highlight.js/lib/languages/javascript" :default javascript-lang
-          "\"highlight.js/lib/languages/typescript" :default typescript-lang
-          "\"highlight.js/lib/languages/json" :default json-lang
-          "\"./calcit.build-errors" :default build-errors
-          "\"bottom-tip" :default hud!
-      :defs $ {}
-        |render-app! $ quote
-          defn render-app! () $ render! mount-target (comp-container @*reel) dispatch!
-        |ssr? $ quote
-          def ssr? $ some? (js/document.querySelector |meta.respo-ssr)
-        |handle-direction! $ quote
-          defn handle-direction! (event)
-            when
-              = :slides $ :router (:store @*reel)
-              case-default (.-key event) nil
-                "\"ArrowRight" $ dispatch! :slide-down nil
-                "\"ArrowLeft" $ dispatch! :slide-up nil
-            when
-              and
-                = "\"e" $ .-key event
-                .-metaKey event
-              let
-                  router $ :router (:store @*reel)
-                case-default router (println "\"TODO")
-                  :edit-slide $ println "\"do..."
-                  :slides $ if (.-shiftKey event) (dispatch! :router :home) (dispatch! :router :edit-slide)
-                  :headlines $ dispatch! :router :slides
-            when
-              and
-                = "\"i" $ .-key event
-                .-metaKey event
-              dispatch! :router :headlines
-        |persist-storage! $ quote
-          defn persist-storage! (? e)
-            js/localStorage.setItem (:storage-key config/site)
-              format-cirru-edn $ :store @*reel
-        |mount-target $ quote
-          def mount-target $ .querySelector js/document |.app
-        |*reel $ quote
-          defatom *reel $ -> reel-schema/reel (assoc :base schema/store) (assoc :store schema/store)
-        |main! $ quote
-          defn main! ()
-            println "\"Running mode:" $ if config/dev?
-              do (load-console-formatter!) "\"dev"
-              , "\"release"
-            .!registerLanguage hljs "\"clojure" clojure-lang
-            .!registerLanguage hljs "\"bash" bash-lang
-            .!registerLanguage hljs "\"javascript" javascript-lang
-            .!registerLanguage hljs "\"ts" typescript-lang
-            .!registerLanguage hljs "\"json" json-lang
-            render-app!
-            add-watch *reel :changes $ fn (r p) (render-app!)
-            listen-devtools! |a dispatch!
-            .addEventListener js/window |beforeunload persist-storage!
-            repeat! 60 persist-storage!
-            let
-                raw $ .!getItem js/localStorage (:storage-key config/site)
-              when (some? raw)
-                dispatch! :hydrate-storage $ parse-cirru-edn raw
-            .!addEventListener js/window "\"keydown" handle-direction!
-            println "|App started."
-        |dispatch! $ quote
-          defn dispatch! (op op-data)
-            when
-              and config/dev? (not= op :states) (not= op :hydrate-storage)
-              println "\"Dispatch:" op op-data
-            reset! *reel $ reel-updater updater @*reel op op-data
-        |reload! $ quote
-          defn reload! () $ if (nil? build-errors)
-            do (remove-watch *reel :changes) (clear-cache!)
-              add-watch *reel :changes $ fn (reel prev) (render-app!)
-              reset! *reel $ refresh-reel @*reel schema/store updater
-              hud! "\"ok~" "\"Ok"
-            hud! "\"error" build-errors
-        |repeat! $ quote
-          defn repeat! (duration cb)
-            js/setTimeout
-              fn () (cb)
-                repeat! (* 1000 duration) cb
-              * 1000 duration
     |app.util $ {}
-      :ns $ quote
-        ns app.util $ :require
       :defs $ {}
         |grab-headline $ quote
           defn grab-headline (slide)
@@ -495,10 +501,5 @@
               filter $ fn (line)
                 not $ .blank? line
               first
-    |app.config $ {}
-      :ns $ quote (ns app.config)
-      :defs $ {}
-        |dev? $ quote
-          def dev? $ = "\"dev" (get-env "\"mode")
-        |site $ quote
-          def site $ {} (:title "\"Sedum Slide") (:icon "\"http://cdn.tiye.me/logo/sedum-icon.png") (:storage-key "\"sedum-slide")
+      :ns $ quote
+        ns app.util $ :require

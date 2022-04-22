@@ -1,4 +1,6 @@
 
+@import url(highlight.js/styles/github.css);
+
 body {
   margin: 0;
   font-display: optional;
