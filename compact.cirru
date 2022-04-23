@@ -242,6 +242,25 @@
           "\"md5" :default md5
     |app.comp.slides $ {}
       :defs $ {}
+        |comp-control $ quote
+          defcomp comp-control (content)
+            [] (reading-effect content)
+              div
+                {} $ :style
+                  merge ui/row-middle $ {} (:position :absolute) (:left 16) (:bottom 16) (:padding "\"8px 16px") (:border-radius "\"8px")
+                    :border $ str "\"1px solid " (hsl 0 0 90)
+                    :background-color $ hsl 0 0 100
+                comp-icon :volume-2
+                  {} (:font-size 18) (:line-height 1) (:cursor :pointer)
+                    :color $ hsl 200 90 80
+                  fn (e d!)
+                    synthesizeAzureSpeech (turn-readable content) (get-env "\"azure-key")
+                      fn () $ println "\"done"
+                =< 24 nil
+                comp-icon :maximize
+                  {} (:font-size 18) (:line-height 1) (:cursor :pointer)
+                    :color $ hsl 200 90 80
+                  fn (e d!) (js/document.body.requestFullscreen)
         |comp-pager $ quote
           defcomp comp-pager (page slides position)
             div
@@ -323,17 +342,50 @@
                             do (js/console.log "\"not highlighting:" lang code-lang) (escape-html code)
                 comp-pager page slides $ {} (:right 16) (:bottom 8)
                 comp-prompter page slides $ {} (:bottom 48) (:right 16)
+                if
+                  = "\"on" $ get-env "\"readable"
+                  comp-control content
+        |reading-effect $ quote
+          defeffect reading-effect (content) (action el at?)
+            if (= action :update)
+              synthesizeAzureSpeech (turn-readable content) (get-env "\"azure-key")
+                fn () $ println "\"done"
         |style-md-area $ quote
           def style-md-area $ {} (:overflow :auto) (:position :absolute) (:top 0) (:left 0) (:width "\"100%") (:height "\"100%") (:padding 40) (:font-size 40)
             :color $ hsl 0 0 30
             :padding-bottom 160
         |supported-langs $ quote
           def supported-langs $ {} ("\"clojure" "\"clojure") ("\"bash" "\"bash") ("\"clj" "\"clojure") ("\"javascript" "\"javascript") ("\"js" "\"javascript") ("\"ts" "\"typescript") ("\"json" "\"json")
+        |turn-readable $ quote
+          defn turn-readable (content)
+            -> (split-block content)
+              filter $ fn (piece)
+                and
+                  = :text $ first piece
+                  not $ .starts-with?
+                    .join-str (last piece) "\""
+                    , "\"![]"
+                  not $ .starts-with?
+                    .join-str (last piece) "\""
+                    , "\"> "
+              map $ fn (piece)
+                -> (rest piece)
+                  map $ fn (xs)
+                    -> xs
+                      map $ fn (line)
+                        -> line
+                          .!replace (new js/RegExp "\"^#+" "\"g") "\""
+                          .!replace (new js/RegExp "\"^\\*") &newline
+                          .!replace (new js/RegExp "\"https?://\\S+" "\"g") "\"见链接."
+                      .join-str "\" , "
+                  .join-str &newline
+              .join-str &newline
+              ; w-log
       :ns $ quote
         ns app.comp.slides $ :require
           respo-ui.core :refer $ hsl
           respo-ui.core :as ui
-          respo.core :refer $ defcomp >> <> div button textarea span
+          respo.core :refer $ defcomp defeffect >> <> div button textarea span
           respo.comp.space :refer $ =<
           reel.comp.reel :refer $ comp-reel
           respo-md.comp.md :refer $ comp-md-block comp-md
@@ -342,6 +394,9 @@
           "\"highlight.js" :default hljs
           "\"escape-html" :default escape-html
           app.util :refer $ grab-headline
+          feather.core :refer $ comp-icon
+          "\"../entry/play-audio.mjs" :refer $ synthesizeAzureSpeech
+          respo-md.util.core :refer $ split-block
     |app.config $ {}
       :defs $ {}
         |dev? $ quote
@@ -364,8 +419,8 @@
             when
               = :slides $ :router (:store @*reel)
               case-default (.-key event) nil
-                "\"ArrowRight" $ dispatch! :slide-down nil
-                "\"ArrowLeft" $ dispatch! :slide-up nil
+                "\"ArrowRight" $ do (dispatch! :slide-down nil) (scroll-top!)
+                "\"ArrowLeft" $ do (dispatch! :slide-up nil) (scroll-top!)
             when
               and
                 = "\"e" $ .-key event
@@ -423,6 +478,8 @@
               fn () (cb)
                 repeat! (* 1000 duration) cb
               * 1000 duration
+        |scroll-top! $ quote
+          defn scroll-top! () $ -> (js/document.querySelector "\".slide-area") (.-scrollTop) (set! 0)
         |ssr? $ quote
           def ssr? $ some? (js/document.querySelector |meta.respo-ssr)
       :ns $ quote
