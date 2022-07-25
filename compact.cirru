@@ -400,7 +400,7 @@
     |app.config $ {}
       :defs $ {}
         |dev? $ quote
-          def dev? $ = "\"dev" (get-env "\"mode")
+          def dev? $ = "\"dev" (get-env "\"mode" "\"release")
         |site $ quote
           def site $ {} (:title "\"Sedum Slide") (:icon "\"http://cdn.tiye.me/logo/sedum-icon.png") (:storage-key "\"sedum-slide")
       :ns $ quote (ns app.config)
