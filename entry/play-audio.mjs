@@ -1,6 +1,6 @@
 
 // import * as sdk from "microsoft-cognitiveservices-speech-sdk";
-import * as bundle from "microsoft-cognitiveservices-speech-sdk/distrib/browser/microsoft.cognitiveservices.speech.sdk.bundle";
+import * as bundle from "microsoft-cognitiveservices-speech-sdk/distrib/es2015/microsoft.cognitiveservices.speech.sdk";
 
 console.log("SpeechSDK", bundle);
 
