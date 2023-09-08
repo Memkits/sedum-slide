@@ -3,6 +3,7 @@
 import * as bundle from "microsoft-cognitiveservices-speech-sdk/distrib/es2015/microsoft.cognitiveservices.speech.sdk";
 
 console.log("SpeechSDK", bundle);
+let SpeechSDK = bundle
 
 export function synthesizeAzureSpeech(text, key, cb) {
     const speechConfig = SpeechSDK.SpeechConfig.fromSubscription(key, "eastasia");
