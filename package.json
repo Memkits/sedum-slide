@@ -12,15 +12,17 @@
   "license": "MIT",
   "devDependencies": {
     "bottom-tip": "^0.1.5",
-    "vite": "^4.4.12"
+    "vite": "^5.0.6"
   },
   "dependencies": {
-    "@calcit/procs": "^0.8.0",
+    "@calcit/procs": "^0.8.14",
+    "cirru-color": "^0.2.3",
+    "copy-text-to-clipboard": "^3.2.0",
     "escape-html": "^1.0.3",
     "feather-icons": "^4.29.1",
-    "highlight.js": "^11.8.0",
+    "highlight.js": "^11.9.0",
     "md5": "^2.3.0",
-    "microsoft-cognitiveservices-speech-sdk": "^1.32.0",
+    "microsoft-cognitiveservices-speech-sdk": "^1.33.1",
     "shortid": "^2.2.16"
   }
 }

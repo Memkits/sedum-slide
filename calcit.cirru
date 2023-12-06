@@ -3185,8 +3185,7 @@
               |j $ %{} :Leaf (:at 1499755354983) (:by |root) (:text |mount-target)
               |r $ %{} :Expr (:at 1499755354983) (:by nil)
                 :data $ {}
-                  |T $ %{} :Leaf (:at 1499755354983) (:by |root) (:text |.querySelector)
-                  |j $ %{} :Leaf (:at 1499755354983) (:by |root) (:text |js/document)
+                  |j $ %{} :Leaf (:at 1701876919215) (:by |rJG4IHzWf) (:text |js/document.querySelector)
                   |r $ %{} :Leaf (:at 1499755354983) (:by |root) (:text ||.app)
         |persist-storage! $ %{} :CodeEntry (:doc |)
           :code $ %{} :Expr (:at 1571641946929) (:by |root)
