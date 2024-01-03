@@ -480,6 +480,7 @@
               println "\"Running mode:" $ if config/dev?
                 do (load-console-formatter!) "\"dev"
                 , "\"release"
+              ; reset! *changes-logger $ fn (& args) (js/console.log & args)
               .!registerLanguage hljs "\"clojure" clojure-lang
               .!registerLanguage hljs "\"bash" bash-lang
               .!registerLanguage hljs "\"javascript" javascript-lang
@@ -531,7 +532,7 @@
       :ns $ %{} :CodeEntry (:doc |)
         :code $ quote
           ns app.main $ :require
-            respo.core :refer $ render! clear-cache! realize-ssr!
+            respo.core :refer $ render! clear-cache! realize-ssr! *changes-logger
             app.comp.container :refer $ comp-container
             app.updater :refer $ updater
             app.schema :as schema

@@ -1340,7 +1340,7 @@
                                                                               |j $ %{} :Leaf (:at 1635855947006) (:by |rJG4IHzWf) (:text |200)
                                                                               |r $ %{} :Leaf (:at 1635855947404) (:by |rJG4IHzWf) (:text |80)
                                                                               |v $ %{} :Leaf (:at 1635855949948) (:by |rJG4IHzWf) (:text |60)
-                                                                      |v $ %{} :Leaf (:at 1635855951992) (:by |rJG4IHzWf) (:text |nil)
+                                                                      |v $ %{} :Leaf (:at 1704304725670) (:by |rJG4IHzWf) (:text |nil)
                                                               |x $ %{} :Expr (:at 1635855902590) (:by |rJG4IHzWf)
                                                                 :data $ {}
                                                                   |T $ %{} :Leaf (:at 1635855982567) (:by |rJG4IHzWf) (:text |:margin-bottom)
@@ -3072,6 +3072,23 @@
                               |T $ %{} :Leaf (:at 1632223760179) (:by |rJG4IHzWf) (:text |load-console-formatter!)
                           |T $ %{} :Leaf (:at 1571641908743) (:by |root) (:text "|\"dev")
                       |v $ %{} :Leaf (:at 1571641908743) (:by |root) (:text "|\"release")
+              |u $ %{} :Expr (:at 1704304865717) (:by |rJG4IHzWf)
+                :data $ {}
+                  |D $ %{} :Leaf (:at 1704305460149) (:by |rJG4IHzWf) (:text |;)
+                  |T $ %{} :Leaf (:at 1704304867469) (:by |rJG4IHzWf) (:text |reset!)
+                  |b $ %{} :Leaf (:at 1704304877169) (:by |rJG4IHzWf) (:text |*changes-logger)
+                  |h $ %{} :Expr (:at 1704304877916) (:by |rJG4IHzWf)
+                    :data $ {}
+                      |T $ %{} :Leaf (:at 1704304878207) (:by |rJG4IHzWf) (:text |fn)
+                      |b $ %{} :Expr (:at 1704304878916) (:by |rJG4IHzWf)
+                        :data $ {}
+                          |T $ %{} :Leaf (:at 1704304881523) (:by |rJG4IHzWf) (:text |&)
+                          |b $ %{} :Leaf (:at 1704304882438) (:by |rJG4IHzWf) (:text |args)
+                      |h $ %{} :Expr (:at 1704304883515) (:by |rJG4IHzWf)
+                        :data $ {}
+                          |T $ %{} :Leaf (:at 1704304886995) (:by |rJG4IHzWf) (:text |js/console.log)
+                          |b $ %{} :Leaf (:at 1704304888454) (:by |rJG4IHzWf) (:text |&)
+                          |h $ %{} :Leaf (:at 1704304889954) (:by |rJG4IHzWf) (:text |args)
               |w $ %{} :Expr (:at 1530983746594) (:by |root)
                 :data $ {}
                   |L $ %{} :Leaf (:at 1632221360918) (:by |rJG4IHzWf) (:text |.!registerLanguage)
@@ -3370,6 +3387,7 @@
                         |j $ %{} :Leaf (:at 1499755354983) (:by |root) (:text |render!)
                         |r $ %{} :Leaf (:at 1499755354983) (:by |root) (:text |clear-cache!)
                         |v $ %{} :Leaf (:at 1499755354983) (:by |root) (:text |realize-ssr!)
+                        |w $ %{} :Leaf (:at 1704304875226) (:by |rJG4IHzWf) (:text |*changes-logger)
                 |v $ %{} :Expr (:at 1499755354983) (:by nil)
                   :data $ {}
                     |j $ %{} :Leaf (:at 1499755354983) (:by |root) (:text |app.comp.container)
