@@ -423,6 +423,9 @@
         |dev? $ %{} :CodeEntry (:doc |)
           :code $ quote
             def dev? $ = "\"dev" (get-env "\"mode" "\"release")
+        |initial-content $ %{} :CodeEntry (:doc |)
+          :code $ quote
+            def initial-content $ get-env "\"content"
         |readable? $ %{} :CodeEntry (:doc |)
           :code $ quote
             def readable? $ = "\"on" (get-env "\"readable")
@@ -474,6 +477,15 @@
                   = "\"i" $ .-key event
                   .-metaKey event
                 dispatch! $ :: :router :headlines
+        |load-content! $ %{} :CodeEntry (:doc |)
+          :code $ quote
+            defn load-content! (url) (hint-fn async)
+              let
+                  res $ js-await (js/fetch url)
+                  file $ js-await (.!text res)
+                dispatch! $ :: :render-slides
+                  to-calcit-data $ .!split file pattern-divider
+                dispatch! $ :: :router :slides
         |main! $ %{} :CodeEntry (:doc |)
           :code $ quote
             defn main! ()
@@ -496,6 +508,7 @@
                 when (some? raw)
                   dispatch! $ :: :hydrate-storage (parse-cirru-edn raw)
               .!addEventListener js/window "\"keydown" handle-direction!
+              if-let (content config/initial-content) (load-content! content)
               println "|App started."
         |mount-target $ %{} :CodeEntry (:doc |)
           :code $ quote
@@ -533,7 +546,7 @@
         :code $ quote
           ns app.main $ :require
             respo.core :refer $ render! clear-cache! realize-ssr! *changes-logger
-            app.comp.container :refer $ comp-container
+            app.comp.container :refer $ comp-container pattern-divider
             app.updater :refer $ updater
             app.schema :as schema
             reel.util :refer $ listen-devtools!
