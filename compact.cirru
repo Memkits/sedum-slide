@@ -13,10 +13,10 @@
                   store $ :store reel
                   states $ :states store
                 div
-                  {} $ :style (merge ui/global ui/fullscreen ui/row)
+                  {} $ :class-name (str-spaced css/global css/preset css/fullscreen css/row)
                   case-default (:router store)
                     div
-                      {} $ :style ui/expand
+                      {} $ :class-name css/expand
                       <> $ str "\"Unknown:" (:router store)
                     :slides $ comp-slides (:slides store) (:page store)
                     :headlines $ comp-headlines (:slides store) (:page store)
@@ -38,23 +38,22 @@
                   content $ :content state
                 [] (effect-focus)
                   div
-                    {} $ :style
-                      merge ui/flex ui/column $ {} (:font-family ui/font-code)
+                    {} $ :class-name (str-spaced css/flex css/column css/font-code)
                     =< nil 8
                     div
-                      {} $ :style
-                        merge ui/row-parted $ {} (:padding "\"4px 16px")
+                      {} (:class-name css/row-parted)
+                        :style $ {} (:padding "\"4px 16px")
                       span $ {}
                       button
-                        {} (:style ui/button)
+                        {} (:class-name css/button)
                           :on-click $ fn (e d!)
                             d! :render-slides $ to-calcit-data (.!split content pattern-divider)
                             d! cursor nil
                         <> "\"Split text"
                     textarea $ {}
-                      :style $ merge ui/flex ui/textarea
-                        {} (:height "\"80%") (:margin "\"8px 16px") (:padding "\"16px 16px 160px 16px") (:font-family ui/font-code) (:font-size 20)
-                          :border $ str "\"1px solid " (hsl 0 0 80)
+                      :class-name $ str-spaced css/flex css/textarea css/font-code
+                      :style $ {} (:height "\"80%") (:margin "\"8px 16px") (:padding "\"16px 16px 160px 16px") (:font-size 20)
+                        :border $ str "\"1px solid " (hsl 0 0 80)
                       :value content
                       :placeholder "\"Slides"
                       :on-input $ fn (e d!)
@@ -78,13 +77,7 @@
           :code $ quote
             defcomp comp-sidebar (router)
               div
-                {} $ :style
-                  merge ui/column $ {} (:min-width 48)
-                    :background-color $ hsl 0 0 94
-                    :align-items :center
-                    :padding 16
-                    :flex-shrink 0
-                    :font-size 24
+                {} $ :class-name (str-spaced css/column style-sidebar)
                 render-entry :slides :airplay router
                 render-entry :headlines :info router
                 render-entry :home :code router
@@ -106,11 +99,22 @@
                     {} (:cursor :pointer) (:margin "\"16px 0")
                   :on-click $ fn (e d!) (d! :router router-name)
                 comp-i icon 18 $ if (= current-page router-name) "\"black" "\"#ccc"
+        |style-sidebar $ %{} :CodeEntry (:doc |)
+          :code $ quote
+            defstyle style-sidebar $ {}
+              "\"&" $ {} (:min-width 48)
+                :background-color $ hsl 0 0 94
+                :align-items :center
+                :padding 16
+                :flex-shrink 0
+                :font-size 24
       :ns $ %{} :CodeEntry (:doc |)
         :code $ quote
           ns app.comp.container $ :require
             respo-ui.core :refer $ hsl
+            respo-ui.css :as css
             respo-ui.core :as ui
+            respo.css :refer $ defstyle
             respo.core :refer $ defcomp >> <> div button textarea span defeffect
             respo.comp.space :refer $ =<
             reel.comp.reel :refer $ comp-reel
@@ -132,21 +136,21 @@
                     {} $ :draft slide
                 [] (effect-focus)
                   div
-                    {} $ :style (merge ui/expand ui/column)
+                    {} $ :class-name (str-spaced css/expand css/column)
                     =< nil 8
                     div
-                      {} $ :style
-                        merge ui/row-parted $ {} (:padding "\"4px 16px")
+                      {} (:class-name css/row-parted)
+                        :style $ {} (:padding "\"4px 16px")
                       span $ {}
-                      button $ {} (:style ui/button) (:inner-text "\"Submit")
+                      button $ {} (:class-name css/button) (:inner-text "\"Submit")
                         :on-click $ fn (e d!)
                           d! :edit-slide $ :draft state
                           d! cursor nil
                           d! :router :slides
                     textarea $ {}
-                      :style $ merge ui/expand ui/textarea
-                        {} (:font-family ui/font-code) (:font-size 24) (:margin "\"8px 16px") (:padding "\"16px 16px 160px 16px") (:line-height 1.6)
-                          :border $ str "\"1px solid " (hsl 0 0 80)
+                      :class-name $ str-spaced css/expand css/textarea css/font-code
+                      :style $ {} (:font-size 24) (:margin "\"8px 16px") (:padding "\"16px 16px 160px 16px") (:line-height 1.6)
+                        :border $ str "\"1px solid " (hsl 0 0 80)
                       :value $ :draft state
                       :on-input $ fn (e d!)
                         d! cursor $ assoc state :draft (:value e)
@@ -170,6 +174,7 @@
           ns app.comp.edit-slide $ :require
             respo-ui.core :refer $ hsl
             respo-ui.core :as ui
+            respo-ui.css :as css
             respo.core :refer $ defcomp >> <> div button textarea span defeffect
             respo.comp.space :refer $ =<
             reel.comp.reel :refer $ comp-reel
@@ -186,9 +191,8 @@
             defcomp comp-headlines (slides page)
               div
                 {}
-                  :style $ merge ui/flex
-                    {} (:overflow :auto) (:padding-bottom 200)
-                  :class-name "\"headlines-page"
+                  :class-name $ str-spaced "\"headlines-page" css/flex
+                  :style $ {} (:overflow :auto) (:padding-bottom 200)
                 list->
                   {} $ :style
                     {} (:padding 16) (:font-size 20)
@@ -200,29 +204,24 @@
                             indent $ get-indent (or headline "\"")
                             selected? $ = page idx
                           div
-                            {}
-                              :style $ merge ui/row-middle
-                                {} (:cursor :pointer)
-                                  :opacity $ - 1
-                                    * 0.2 $ pow indent 1.4
-                                  :border-bottom $ if selected?
-                                    str "\"1px solid " $ hsl 200 80 60
-                                    , nil
-                                  :margin-bottom $ if selected? -1 nil
+                            {} (:class-name css/row-middle)
+                              :style $ {} (:cursor :pointer)
+                                :opacity $ - 1
+                                  * 0.2 $ pow indent 1.4
+                                :border-bottom $ if selected?
+                                  str "\"1px solid " $ hsl 200 80 60
+                                  , nil
+                                :margin-bottom $ if selected? -1 nil
                               :on-click $ fn (e d!) (d! :page idx)
                             div $ {}
                               :style $ {}
                                 :width $ * 20
                                   dec $ pow 2 indent
-                            <> (inc idx)
-                              merge
-                                {}
-                                  :color $ hsl 0 0 90
-                                  :font-family ui/font-code
-                                  :display :inline-block
-                                  :min-width 40
-                                  :text-align :right
-                                if selected? $ {} (:color :blue)
+                            span $ {}
+                              :class-name $ str-spaced css/font-code style-head-text
+                              :inner-text $ inc idx
+                              :style $ if selected?
+                                {} $ :color :blue
                             =< 16 nil
                             if (some? headline)
                               comp-md-block headline $ {}
@@ -239,11 +238,21 @@
         |re-sharp $ %{} :CodeEntry (:doc |)
           :code $ quote
             def re-sharp $ new js/RegExp "\"#" "\"g"
+        |style-head-text $ %{} :CodeEntry (:doc |)
+          :code $ quote
+            defstyle style-head-text $ {}
+              "\"&" $ {}
+                :color $ hsl 0 0 90
+                :display :inline-block
+                :min-width 40
+                :text-align :right
       :ns $ %{} :CodeEntry (:doc |)
         :code $ quote
           ns app.comp.headlines $ :require
             respo-ui.core :refer $ hsl
             respo-ui.core :as ui
+            respo-ui.css :as css
+            respo.css :refer $ defstyle
             respo.core :refer $ defcomp >> list-> <> div button textarea span
             respo.comp.space :refer $ =<
             reel.comp.reel :refer $ comp-reel
@@ -280,11 +289,7 @@
           :code $ quote
             defcomp comp-pager (page slides position)
               div
-                {} $ :style
-                  merge
-                    {} (:position :absolute) (:font-family ui/font-code) (:font-size 24)
-                      :color $ hsl 0 0 1 0.6
-                    , position
+                {} (:class-name style-pager) (:style position)
                 span $ {}
                   :inner-text $ &let
                     now $ new js/Date
@@ -340,8 +345,8 @@
               let
                   content $ get slides (or page 0)
                 div
-                  {} $ :style
-                    merge ui/flex $ {}
+                  {} (:class-name css/flex)
+                    :style $ {}
                       :background-color $ hsl 0 0 100
                       :position :relative
                   if (blank? content)
@@ -350,7 +355,8 @@
                         {} (:color :red) (:padding "\"20px") (:font-size 20)
                       <> $ str "\"undefined page: " page
                     comp-md-block (either content "\"")
-                      {} (:style style-md-area) (:class-name "\"slide-area")
+                      {}
+                        :class-name $ str-spaced "\"slide-area" style-md-area
                         :highlight $ fn (code lang)
                           let
                               code-lang $ get supported-langs lang
@@ -369,9 +375,16 @@
                   fn () $ println "\"done"
         |style-md-area $ %{} :CodeEntry (:doc |)
           :code $ quote
-            def style-md-area $ {} (:overflow :auto) (:position :absolute) (:top 0) (:left 0) (:width "\"100%") (:height "\"100%") (:padding 40) (:font-size 40)
-              :color $ hsl 0 0 30
-              :padding-bottom 160
+            defstyle style-md-area $ {}
+              "\"&" $ {} (:overflow :auto) (:position :absolute) (:top 0) (:left 0) (:width "\"100%") (:height "\"100%") (:padding 40) (:font-size 40)
+                :color $ hsl 0 0 30
+                :padding-bottom 160
+              "\"& code" $ {} (:font-size "\"inherit")
+        |style-pager $ %{} :CodeEntry (:doc |)
+          :code $ quote
+            defstyle style-pager $ {}
+              "\"&" $ {} (:position :absolute) (:font-family ui/font-code) (:font-size 24)
+                :color $ hsl 0 0 1 0.6
         |supported-langs $ %{} :CodeEntry (:doc |)
           :code $ quote
             def supported-langs $ {} ("\"clojure" "\"clojure") ("\"bash" "\"bash") ("\"clj" "\"clojure") ("\"javascript" "\"javascript") ("\"js" "\"javascript") ("\"ts" "\"typescript") ("\"json" "\"json")
@@ -405,7 +418,9 @@
         :code $ quote
           ns app.comp.slides $ :require
             respo-ui.core :refer $ hsl
+            respo.css :refer $ defstyle
             respo-ui.core :as ui
+            respo-ui.css :as css
             respo.core :refer $ defcomp defeffect >> <> div button textarea span
             respo.comp.space :refer $ =<
             reel.comp.reel :refer $ comp-reel
