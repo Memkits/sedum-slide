@@ -38,11 +38,15 @@
           :code $ quote
             defcomp comp-draft (states slides)
               let
-                  cursor $ :cursor states
-                  state $ or (:data states)
-                    {} $ :content
-                      -> slides $ .join-str (str &newline |---- &newline)
-                  content $ :content state
+                  states-map $ unsafe-coerce states 'Map
+                  slides-list $ unsafe-coerce slides 'List
+                  cursor $ &map:get states-map :cursor
+                  fallback-state $ {}
+                    :content $ join-str slides-list (str &newline |---- &newline)
+                  state $ unsafe-coerce
+                    option:unwrap-or (get states-map :data) fallback-state
+                    , 'Map
+                  content $ unsafe-coerce (&map:get state :content) 'String
                 [] (effect-focus)
                   div
                     {} $ :class-name (str-spaced css/flex css/column css/font-code)
@@ -65,19 +69,22 @@
                       :placeholder |Slides
                       :on-input $ fn (e d!)
                         d! cursor $ assoc state :content
-                          assert-type (:value e) 'String
+                          unsafe-coerce
+                            &map:get (unsafe-coerce e 'Map) :value
+                            , 'String
                       :on-keydown $ fn (e d!)
                         let
-                            event $ :event e
+                            event $ unsafe-coerce
+                              &map:get (unsafe-coerce e 'Map) :event
+                              , 'JsObject
+                            key $ unsafe-coerce (.-key event) 'String
+                            keycode $ unsafe-coerce (.-keyCode event) 'Number
+                            meta? $ unsafe-coerce (.-metaKey event) 'Bool
+                            shift? $ unsafe-coerce (.-shiftKey event) 'Bool
                           if
                             or
-                              and
-                                = |e $ .-key event
-                                .-shiftKey event
-                                .-metaKey event
-                              and
-                                = 13 $ .-keyCode event
-                                .-metaKey event
+                              and (= |e key) shift? meta?
+                              and (= 13 keycode) meta?
                             do
                               d! :render-slides $ to-calcit-data (.!split content pattern-divider)
                               d! cursor nil
@@ -98,7 +105,10 @@
           :code $ quote
             defeffect effect-focus () (action el *local at-place?)
               when (= :mount action)
-                .!focus $ .!querySelector el |textarea
+                let
+                    target $ .!querySelector (unsafe-coerce el 'JsObject) |textarea
+                  when (js-present? target)
+                    .!focus $ unsafe-coerce target 'JsObject
           :examples $ []
           :schema $ :: 'Dynamic
         'pattern-divider $ %{} 'CodeEntry (:doc |)
@@ -151,9 +161,13 @@
           :code $ quote
             defcomp comp-edit-slide (states slide)
               let
-                  cursor $ :cursor states
-                  state $ or (:data states)
-                    {} $ :draft slide
+                  states-map $ unsafe-coerce states 'Map
+                  cursor $ &map:get states-map :cursor
+                  fallback-state $ {} (:draft slide)
+                  state $ unsafe-coerce
+                    option:unwrap-or (get states-map :data) fallback-state
+                    , 'Map
+                  draft $ unsafe-coerce (&map:get state :draft) 'String
                 [] (effect-focus)
                   div
                     {} $ :class-name (str-spaced css/expand css/column)
@@ -163,26 +177,28 @@
                         :style $ {} (:padding "|4px 16px")
                       span $ {}
                       button $ {} (:class-name css/button) (:inner-text |Submit)
-                        :on-click $ fn (e d!)
-                          d! :edit-slide $ :draft state
-                          d! cursor nil
-                          d! :router :slides
+                        :on-click $ fn (e d!) (d! :edit-slide draft) (d! cursor nil) (d! :router :slides)
                     textarea $ {}
                       :class-name $ str-spaced css/expand css/textarea css/font-code
                       :style $ {} (:font-size 24) (:margin "|8px 16px") (:padding "|16px 16px 160px 16px") (:line-height 1.6)
                         :border $ str "|1px solid " (hsl 0 0 80)
-                      :value $ :draft state
+                      :value draft
                       :on-input $ fn (e d!)
                         d! cursor $ assoc state :draft
-                          assert-type (:value e) 'String
+                          unsafe-coerce
+                            &map:get (unsafe-coerce e 'Map) :value
+                            , 'String
                       :placeholder "|(empty page are going to be removed...)"
                       :on-keydown $ fn (e d!)
                         let
-                            event $ :event e
+                            event $ unsafe-coerce
+                              &map:get (unsafe-coerce e 'Map) :event
+                              , 'JsObject
+                            meta? $ unsafe-coerce (.-metaKey event) 'Bool
+                            key $ unsafe-coerce (.-key event) 'String
                           when
-                            and (.-metaKey event)
-                              = |e $ .-key event
-                            d! :edit-slide $ :draft state
+                            and meta? $ = |e key
+                            d! :edit-slide draft
                             d! cursor nil
                             d! :router :slides
           :examples $ []
@@ -191,7 +207,10 @@
           :code $ quote
             defeffect effect-focus () (action el *local at-place?)
               case-default action nil $ :mount
-                -> el (.!querySelector |textarea) (.!focus)
+                let
+                    target $ .!querySelector (unsafe-coerce el 'JsObject) |textarea
+                  when (js-present? target)
+                    .!focus $ unsafe-coerce target 'JsObject
           :examples $ []
           :schema $ :: 'Dynamic
       :ns $ %{} 'NsEntry (:doc |)
@@ -258,9 +277,13 @@
           :code $ quote
             defn get-indent (text)
               let
-                  ret $ .!match text re-sharp
-                if (some? ret)
-                  - (.-length ret) 1
+                  ret $ .!match (unsafe-coerce text 'String) re-sharp
+                if (js-present? ret)
+                  -
+                    unsafe-coerce
+                      .-length $ unsafe-coerce ret 'JsObject
+                      , 'Number
+                    , 1
                   , 0
           :examples $ []
           :schema $ :: 'Dynamic
@@ -346,12 +369,12 @@
                     :on-click $ fn (e d!) (d! :page 0)
                   <> page
                 <> |/
-                span
-                  {}
-                    :style $ {} (:cursor :pointer)
-                    :on-click $ fn (e d!)
-                      d! :page $ dec (count slides)
-                  <> $ dec (count slides)
+                span $ {}
+                  :style $ {} (:cursor :pointer)
+                  :on-click $ fn (e d!)
+                    d! :page $ dec (count slides)
+                <> $ str
+                  dec $ count slides
           :examples $ []
           :schema $ :: 'Dynamic
         'comp-prompter $ %{} 'CodeEntry (:doc |)
@@ -382,7 +405,11 @@
           :code $ quote
             defcomp comp-slides (slides page)
               let
-                  content $ get slides (or page 0)
+                  content $ unsafe-coerce
+                    option:unwrap-or
+                      get slides $ or page 0
+                      , |
+                    , 'String
                 div
                   {} (:class-name css/flex)
                     :style $ {}
@@ -393,16 +420,18 @@
                       {} $ :style
                         {} (:color :red) (:padding |20px) (:font-size 20)
                       <> $ str "|undefined page: " page
-                    comp-md-block (either content |)
-                      {}
-                        :class-name $ str-spaced |slide-area style-md-area
-                        :highlight $ fn (code lang)
-                          let
-                              code-lang $ get supported-langs lang
-                            if (some? code-lang)
-                              .-value $ .!highlight hljs code
-                                js-object $ :language code-lang
-                              do (js/console.log "|not highlighting:" lang code-lang) (escape-html code)
+                    comp-md-block content $ {}
+                      :class-name $ str-spaced |slide-area style-md-area
+                      :highlight $ fn (code lang)
+                        let
+                            code-lang-option $ get supported-langs lang
+                          if-let (code-lang code-lang-option)
+                            unsafe-coerce
+                              .-value $ unsafe-coerce
+                                .!highlight hljs code $ js-object (:language code-lang)
+                                , 'JsObject
+                              , 'String
+                            do (js/console.log "|not highlighting:" lang code-lang-option) (escape-html code)
                   comp-pager page slides $ {} (:right 16) (:bottom 8)
                   comp-prompter page slides $ {} (:bottom 48) (:right 16)
                   if readable? $ comp-control content
@@ -412,7 +441,8 @@
           :code $ quote
             defeffect reading-effect (content) (action el at?)
               if (= action :update)
-                synthesizeAzureSpeech (turn-readable content) (get-env |azure-key)
+                synthesizeAzureSpeech (turn-readable content)
+                  option:unwrap-or (get-env |azure-key) |
                   fn () $ println |done
           :examples $ []
           :schema $ :: 'Dynamic
@@ -457,13 +487,19 @@
                     map $ fn (xs)
                       -> xs
                         map $ fn (line)
-                          -> line
-                            .!replace (new js/RegExp |^#+ |g) |
-                            .!replace (new js/RegExp |^\*) &newline
-                            .!replace (new js/RegExp |https?://\S+ |g) "|见链接."
-                        .join-str "| , "
-                    .join-str &newline
-                .join-str &newline
+                          let
+                              s1 $ unsafe-coerce
+                                .!replace (unsafe-coerce line 'String) (new js/RegExp |^#+ |g) |
+                                , 'String
+                              s2 $ unsafe-coerce
+                                .!replace s1 (new js/RegExp |^\*) &newline
+                                , 'String
+                            unsafe-coerce
+                              .!replace s2 (new js/RegExp |https?://\S+ |g) "|见链接."
+                              , 'String
+                        join-str "| , "
+                    join-str &newline
+                join-str &newline
                 ; w-log
           :examples $ []
           :schema $ :: 'Dynamic
@@ -490,7 +526,8 @@
       :defs $ {}
         'dev? $ %{} 'CodeEntry (:doc |)
           :code $ quote
-            def dev? $ = |dev (get-env |mode |release)
+            def dev? $ = |dev
+              option:unwrap-or (get-env |mode) |release
           :examples $ []
           :schema $ :: 'Dynamic
         'initial-content $ %{} 'CodeEntry (:doc |)
@@ -500,7 +537,8 @@
           :schema $ :: 'Dynamic
         'readable? $ %{} 'CodeEntry (:doc |)
           :code $ quote
-            def readable? $ = |on (get-env |readable)
+            def readable? $ = |on
+              option:unwrap-or (get-env |readable) |
           :examples $ []
           :schema $ :: 'Dynamic
         'site $ %{} 'CodeEntry (:doc |)
@@ -520,11 +558,11 @@
         'dispatch! $ %{} 'CodeEntry (:doc |)
           :code $ quote
             defn dispatch! (op)
-              when
-                and config/dev?
-                  not= (nth op 0) :states
-                  not= (nth op 0) :hydrate-storage
-                println |Dispatch: op
+              let
+                  op-name $ option:unwrap-or (nth op 0) :unknown
+                when
+                  and config/dev? (not= op-name :states) (not= op-name :hydrate-storage)
+                  println |Dispatch: op
               reset! *reel $ reel-updater updater @*reel op
           :examples $ []
           :schema $ :: 'Dynamic
@@ -547,14 +585,16 @@
                     |ArrowLeft $ do
                       dispatch! $ :: :slide-up
                       scroll-top!
-                when (and (= |e key) meta?)
+                when
+                  and (= |e key) meta?
                   case-default router (println |TODO)
                     :edit-slide $ println |do...
                     :slides $ if shift?
                       dispatch! $ :: :router :home
                       dispatch! $ :: :router :edit-slide
                     :headlines $ dispatch! (:: :router :slides)
-                when (and (= |i key) meta?)
+                when
+                  and (= |i key) meta?
                   dispatch! $ :: :router :headlines
           :examples $ []
           :schema $ :: 'Dynamic
@@ -585,13 +625,15 @@
               render-app!
               add-watch *reel :changes $ fn (r p) (render-app!)
               listen-devtools! |a dispatch!
-              js/window.addEventListener |beforeunload persist-storage!
+              .!addEventListener (unsafe-coerce js/window 'JsObject) |beforeunload persist-storage!
               repeat! 60 persist-storage!
               let
-                  raw $ js/localStorage.getItem (:storage-key config/site)
-                when (some? raw)
-                  dispatch! $ :: :hydrate-storage (parse-cirru-edn raw)
-              .!addEventListener js/window |keydown handle-direction!
+                  storage-key $ unsafe-coerce (&map:get config/site :storage-key) 'String
+                  raw $ js/localStorage.getItem storage-key
+                when (js-present? raw)
+                  dispatch! $ :: :hydrate-storage
+                    parse-cirru-edn $ unsafe-coerce raw 'String
+              .!addEventListener (unsafe-coerce js/window 'JsObject) |keydown handle-direction!
               if-let (content config/initial-content) (load-content! content)
               println "|App started."
           :examples $ []
@@ -604,8 +646,10 @@
         'persist-storage! $ %{} 'CodeEntry (:doc |)
           :code $ quote
             defn persist-storage! (? e)
-              js/localStorage.setItem (:storage-key config/site)
-                format-cirru-edn $ :store @*reel
+              let
+                  storage-key $ unsafe-coerce (&map:get config/site :storage-key) 'String
+                  reel-map $ unsafe-coerce @*reel 'Map
+                js/localStorage.setItem storage-key $ format-cirru-edn (&map:get reel-map :store)
           :examples $ []
           :schema $ :: 'Dynamic
         'reload! $ %{} 'CodeEntry (:doc |)
@@ -634,12 +678,17 @@
           :schema $ :: 'Dynamic
         'scroll-top! $ %{} 'CodeEntry (:doc |)
           :code $ quote
-            defn scroll-top! () $ -> (js/document.querySelector |.slide-area) (.-scrollTop) (set! 0)
+            defn scroll-top! () $ let
+                target $ js/document.querySelector |.slide-area
+              when (js-present? target)
+                set!
+                  .-scrollTop $ unsafe-coerce target 'JsObject
+                  , 0
           :examples $ []
           :schema $ :: 'Dynamic
         'ssr? $ %{} 'CodeEntry (:doc |)
           :code $ quote
-            def ssr? $ some? (js/document.querySelector |meta.respo-ssr)
+            def ssr? $ js-present? (js/document.querySelector |meta.respo-ssr)
           :examples $ []
           :schema $ :: 'Dynamic
       :ns $ %{} 'NsEntry (:doc |)
@@ -679,40 +728,38 @@
         'updater $ %{} 'CodeEntry (:doc |)
           :code $ quote
             defn updater (store op op-id op-time)
-              tag-match op
-                (:states cursor s) (update-states store cursor s)
-                (:content c) (assoc store :content c)
-                (:router r) (assoc store :router r)
-                (:render-slides d)
-                  -> store (assoc :slides d) (assoc :router :slides)
-                (:slide-up)
-                  update store :page $ fn (page)
-                    if (> page 0) (dec page) page
-                (:page p) (assoc store :page p)
-                (:slide-down)
-                  update store :page $ fn (page)
-                    if
-                      < (inc page)
-                        count $ :slides store
+              let
+                  store-map $ unsafe-coerce store 'Map
+                  page $ unsafe-coerce (&map:get store-map :page) 'Number
+                  slides $ unsafe-coerce (&map:get store-map :slides) 'List
+                match op
+                  (:states cursor s) (update-states store-map cursor s)
+                  (:content c) (assoc store-map :content c)
+                  (:router r) (assoc store-map :router r)
+                  (:render-slides d)
+                    -> store-map (assoc :slides d) (assoc :router :slides)
+                  (:slide-up)
+                    assoc store-map :page $ if (> page 0) (dec page) page
+                  (:page p) (assoc store-map :page p)
+                  (:slide-down)
+                    assoc store-map :page $ if
+                      < (inc page) (count slides)
                       inc page
                       , page
-                (:hydrate-storage d) d
-                (:edit-slide op-data)
-                  let
-                      page $ :page store
+                  (:hydrate-storage d) d
+                  (:edit-slide op-data)
                     if
                       and
-                        .blank? $ or op-data |
-                        < (inc page)
-                          count $ :slides store
-                      dissoc-in store $ [] :slides page
-                      assoc-in store ([] :slides page) op-data
-                (:add-slide op-data)
-                  -> store
-                    update :slides $ fn (slides) (.assoc-after slides op-data "|(New page)")
-                    update :page inc
-                    assoc :router :edit-slide
-                _ $ do (eprintln op) store
+                        blank? $ unsafe-coerce (or op-data |) 'String
+                        < (inc page) (count slides)
+                      dissoc-in store-map $ [] :slides page
+                      assoc-in store-map ([] :slides page) op-data
+                  (:add-slide op-data)
+                    -> store-map
+                      assoc :slides $ .assoc-after slides op-data "|(New page)"
+                      assoc :page $ inc page
+                      assoc :router :edit-slide
+                  _ $ do (eprintln op) store-map
           :examples $ []
           :schema $ :: 'Dynamic
       :ns $ %{} 'NsEntry (:doc |)
@@ -725,9 +772,10 @@
         'grab-headline $ %{} 'CodeEntry (:doc |)
           :code $ quote
             defn grab-headline (slide)
-              -> (.split slide &newline)
+              ->
+                split (unsafe-coerce slide 'String) &newline
                 filter $ fn (line)
-                  not $ .blank? line
+                  not $ blank? (unsafe-coerce line 'String)
                 first
           :examples $ []
           :schema $ :: 'Dynamic
