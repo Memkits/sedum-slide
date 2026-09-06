@@ -1,42 +1,52 @@
 
-{} (:about "|Machine-generated snapshot. Do not edit directly — changes will be overwritten. Use `cr query` to inspect and `cr edit`/`cr tree` to modify. Run `cr docs agents --full` first. Manual edits must follow format and schema conventions, then run `cr edit format`.") (:package |app)
-  :configs $ {} (:init-fn |app.main/main!) (:reload-fn |app.main/reload!) (:version |0.0.1)
-    :modules $ [] |respo.calcit/ |lilac/ |memof/ |respo-ui.calcit/ |respo-markdown.calcit/ |reel.calcit/ |respo-feather.calcit/
+{} (:about "|Machine-generated snapshot. Do not edit directly — changes will be overwritten. Use `calcit query` to inspect and `calcit edit`/`calcit tree` to modify. Run `calcit docs agents --full` first. Manual edits must follow format and schema conventions, then run `calcit edit format`.") (:package |app)
   :entries $ {}
+    :default $ {} (:description |) (:init-fn 'app.main/main!) (:mode :native) (:reload-fn 'app.main/reload!)
+      :feature-policy $ {}
+      :modules $ [] |respo.calcit/ |lilac/ |memof/ |respo-ui.calcit/ |respo-markdown.calcit/ |reel.calcit/ |respo-feather.calcit/
+      :type-slots $ {}
   :files $ {}
-    |app.comp.container $ %{} :FileEntry
+    'app.comp.container $ %{} 'FileEntry
       :defs $ {}
-        |comp-container $ %{} :CodeEntry (:doc |) (:schema :dynamic)
+        'comp-container $ %{} 'CodeEntry (:doc |)
           :code $ quote
             defcomp comp-container (reel)
               let
-                  store $ :store reel
-                  states $ :states store
+                  reel-map $ unsafe-coerce reel 'Map
+                  store $ unsafe-coerce (&map:get reel-map :store) 'Map
+                  states $ unsafe-coerce (&map:get store :states) 'Map
+                  router $ &map:get store :router
+                  slides $ unsafe-coerce (&map:get store :slides) 'List
+                  page $ unsafe-coerce (&map:get store :page) 'Number
                 div
                   {} $ :class-name (str-spaced css/global css/preset css/fullscreen css/row)
-                  case-default (:router store)
+                  case-default router
                     div
                       {} $ :class-name css/expand
-                      <> $ str |Unknown: (:router store)
-                    :slides $ comp-slides (:slides store) (:page store)
-                    :headlines $ comp-headlines (:slides store) (:page store)
-                    :edit-slide $ comp-edit-slide (>> states :edit)
-                      get (:slides store) (:page store)
-                    :home $ comp-draft (>> states :draft) (:slides store)
-                  comp-sidebar $ :router store
+                      <> $ str |Unknown: router
+                    :slides $ comp-slides slides page
+                    :headlines $ comp-headlines slides page
+                    :edit-slide $ comp-edit-slide (>> states :edit) (get slides page)
+                    :home $ comp-draft (>> states :draft) slides
+                  comp-sidebar router
                   when dev? $ comp-reel (>> states :reel) reel ({})
                   when dev? $ comp-inspect |Store store
                     {} (:bottom 0) (:left 100)
           :examples $ []
-        |comp-draft $ %{} :CodeEntry (:doc |) (:schema :dynamic)
+          :schema $ :: 'Dynamic
+        'comp-draft $ %{} 'CodeEntry (:doc |)
           :code $ quote
             defcomp comp-draft (states slides)
               let
-                  cursor $ :cursor states
-                  state $ or (:data states)
-                    {} $ :content
-                      -> slides $ .join-str (str &newline |---- &newline)
-                  content $ :content state
+                  states-map $ unsafe-coerce states 'Map
+                  slides-list $ unsafe-coerce slides 'List
+                  cursor $ &map:get states-map :cursor
+                  fallback-state $ {}
+                    :content $ join-str slides-list (str &newline |---- &newline)
+                  state $ unsafe-coerce
+                    option:unwrap-or (get states-map :data) fallback-state
+                    , 'Map
+                  content $ unsafe-coerce (&map:get state :content) 'String
                 [] (effect-focus)
                   div
                     {} $ :class-name (str-spaced css/flex css/column css/font-code)
@@ -59,24 +69,28 @@
                       :placeholder |Slides
                       :on-input $ fn (e d!)
                         d! cursor $ assoc state :content
-                          assert-type (:value e) :string
+                          unsafe-coerce
+                            &map:get (unsafe-coerce e 'Map) :value
+                            , 'String
                       :on-keydown $ fn (e d!)
                         let
-                            event $ :event e
+                            event $ unsafe-coerce
+                              &map:get (unsafe-coerce e 'Map) :event
+                              , 'JsObject
+                            key $ unsafe-coerce (.-key event) 'String
+                            keycode $ unsafe-coerce (.-keyCode event) 'Number
+                            meta? $ unsafe-coerce (.-metaKey event) 'Bool
+                            shift? $ unsafe-coerce (.-shiftKey event) 'Bool
                           if
                             or
-                              and
-                                = |e $ .-key event
-                                .-shiftKey event
-                                .-metaKey event
-                              and
-                                = 13 $ .-keyCode event
-                                .-metaKey event
+                              and (= |e key) shift? meta?
+                              and (= 13 keycode) meta?
                             do
                               d! :render-slides $ to-calcit-data (.!split content pattern-divider)
                               d! cursor nil
           :examples $ []
-        |comp-sidebar $ %{} :CodeEntry (:doc |) (:schema :dynamic)
+          :schema $ :: 'Dynamic
+        'comp-sidebar $ %{} 'CodeEntry (:doc |)
           :code $ quote
             defcomp comp-sidebar (router)
               div
@@ -86,17 +100,23 @@
                 render-entry :home :code router
                 render-entry :edit-slide :edit-2 router
           :examples $ []
-        |effect-focus $ %{} :CodeEntry (:doc |) (:schema :dynamic)
+          :schema $ :: 'Dynamic
+        'effect-focus $ %{} 'CodeEntry (:doc |)
           :code $ quote
             defeffect effect-focus () (action el *local at-place?)
               when (= :mount action)
-                .!focus $ .!querySelector el |textarea
+                let
+                    target $ .!querySelector (unsafe-coerce el 'JsObject) |textarea
+                  when (js-present? target)
+                    .!focus $ unsafe-coerce target 'JsObject
           :examples $ []
-        |pattern-divider $ %{} :CodeEntry (:doc |) (:schema :dynamic)
+          :schema $ :: 'Dynamic
+        'pattern-divider $ %{} 'CodeEntry (:doc |)
           :code $ quote
             def pattern-divider $ new js/RegExp |\n-{3,}\n
           :examples $ []
-        |render-entry $ %{} :CodeEntry (:doc |) (:schema :dynamic)
+          :schema $ :: 'Dynamic
+        'render-entry $ %{} 'CodeEntry (:doc |)
           :code $ quote
             defn render-entry (router-name icon current-page)
               span
@@ -106,7 +126,8 @@
                   :on-click $ fn (e d!) (d! :router router-name)
                 comp-i icon 18 $ if (= current-page router-name) |black |#ccc
           :examples $ []
-        |style-sidebar $ %{} :CodeEntry (:doc |) (:schema :dynamic)
+          :schema $ :: 'Dynamic
+        'style-sidebar $ %{} 'CodeEntry (:doc |)
           :code $ quote
             defstyle style-sidebar $ {}
               |& $ {} (:min-width 48)
@@ -116,7 +137,8 @@
                 :flex-shrink 0
                 :font-size 24
           :examples $ []
-      :ns $ %{} :NsEntry (:doc |)
+          :schema $ :: 'Dynamic
+      :ns $ %{} 'NsEntry (:doc |)
         :code $ quote
           ns app.comp.container $ :require
             respo-ui.core :refer $ hsl
@@ -133,15 +155,19 @@
             app.comp.slides :refer $ comp-slides
             app.comp.headlines :refer $ comp-headlines
             app.comp.edit-slide :refer $ comp-edit-slide
-    |app.comp.edit-slide $ %{} :FileEntry
+    'app.comp.edit-slide $ %{} 'FileEntry
       :defs $ {}
-        |comp-edit-slide $ %{} :CodeEntry (:doc |) (:schema :dynamic)
+        'comp-edit-slide $ %{} 'CodeEntry (:doc |)
           :code $ quote
             defcomp comp-edit-slide (states slide)
               let
-                  cursor $ :cursor states
-                  state $ or (:data states)
-                    {} $ :draft slide
+                  states-map $ unsafe-coerce states 'Map
+                  cursor $ &map:get states-map :cursor
+                  fallback-state $ {} (:draft slide)
+                  state $ unsafe-coerce
+                    option:unwrap-or (get states-map :data) fallback-state
+                    , 'Map
+                  draft $ unsafe-coerce (&map:get state :draft) 'String
                 [] (effect-focus)
                   div
                     {} $ :class-name (str-spaced css/expand css/column)
@@ -151,36 +177,43 @@
                         :style $ {} (:padding "|4px 16px")
                       span $ {}
                       button $ {} (:class-name css/button) (:inner-text |Submit)
-                        :on-click $ fn (e d!)
-                          d! :edit-slide $ :draft state
-                          d! cursor nil
-                          d! :router :slides
+                        :on-click $ fn (e d!) (d! :edit-slide draft) (d! cursor nil) (d! :router :slides)
                     textarea $ {}
                       :class-name $ str-spaced css/expand css/textarea css/font-code
                       :style $ {} (:font-size 24) (:margin "|8px 16px") (:padding "|16px 16px 160px 16px") (:line-height 1.6)
                         :border $ str "|1px solid " (hsl 0 0 80)
-                      :value $ :draft state
+                      :value draft
                       :on-input $ fn (e d!)
                         d! cursor $ assoc state :draft
-                          assert-type (:value e) :string
+                          unsafe-coerce
+                            &map:get (unsafe-coerce e 'Map) :value
+                            , 'String
                       :placeholder "|(empty page are going to be removed...)"
                       :on-keydown $ fn (e d!)
                         let
-                            event $ :event e
+                            event $ unsafe-coerce
+                              &map:get (unsafe-coerce e 'Map) :event
+                              , 'JsObject
+                            meta? $ unsafe-coerce (.-metaKey event) 'Bool
+                            key $ unsafe-coerce (.-key event) 'String
                           when
-                            and (.-metaKey event)
-                              = |e $ .-key event
-                            d! :edit-slide $ :draft state
+                            and meta? $ = |e key
+                            d! :edit-slide draft
                             d! cursor nil
                             d! :router :slides
           :examples $ []
-        |effect-focus $ %{} :CodeEntry (:doc |) (:schema :dynamic)
+          :schema $ :: 'Dynamic
+        'effect-focus $ %{} 'CodeEntry (:doc |)
           :code $ quote
             defeffect effect-focus () (action el *local at-place?)
               case-default action nil $ :mount
-                -> el (.!querySelector |textarea) (.!focus)
+                let
+                    target $ .!querySelector (unsafe-coerce el 'JsObject) |textarea
+                  when (js-present? target)
+                    .!focus $ unsafe-coerce target 'JsObject
           :examples $ []
-      :ns $ %{} :NsEntry (:doc |)
+          :schema $ :: 'Dynamic
+      :ns $ %{} 'NsEntry (:doc |)
         :code $ quote
           ns app.comp.edit-slide $ :require
             respo-ui.core :refer $ hsl
@@ -195,9 +228,9 @@
             feather.core :refer $ comp-i
             app.comp.slides :refer $ comp-slides
             app.comp.headlines :refer $ comp-headlines
-    |app.comp.headlines $ %{} :FileEntry
+    'app.comp.headlines $ %{} 'FileEntry
       :defs $ {}
-        |comp-headlines $ %{} :CodeEntry (:doc |) (:schema :dynamic)
+        'comp-headlines $ %{} 'CodeEntry (:doc |)
           :code $ quote
             defcomp comp-headlines (slides page)
               div
@@ -239,20 +272,27 @@
                               span $ {} (:inner-text |undefined)
                                 :style $ {} (:color :red)
           :examples $ []
-        |get-indent $ %{} :CodeEntry (:doc |) (:schema :dynamic)
+          :schema $ :: 'Dynamic
+        'get-indent $ %{} 'CodeEntry (:doc |)
           :code $ quote
             defn get-indent (text)
               let
-                  ret $ .!match text re-sharp
-                if (some? ret)
-                  - (.-length ret) 1
+                  ret $ .!match (unsafe-coerce text 'String) re-sharp
+                if (js-present? ret)
+                  -
+                    unsafe-coerce
+                      .-length $ unsafe-coerce ret 'JsObject
+                      , 'Number
+                    , 1
                   , 0
           :examples $ []
-        |re-sharp $ %{} :CodeEntry (:doc |) (:schema :dynamic)
+          :schema $ :: 'Dynamic
+        're-sharp $ %{} 'CodeEntry (:doc |)
           :code $ quote
             def re-sharp $ new js/RegExp |# |g
           :examples $ []
-        |style-head-text $ %{} :CodeEntry (:doc |) (:schema :dynamic)
+          :schema $ :: 'Dynamic
+        'style-head-text $ %{} 'CodeEntry (:doc |)
           :code $ quote
             defstyle style-head-text $ {}
               |& $ {}
@@ -261,7 +301,8 @@
                 :min-width 40
                 :text-align :right
           :examples $ []
-      :ns $ %{} :NsEntry (:doc |)
+          :schema $ :: 'Dynamic
+      :ns $ %{} 'NsEntry (:doc |)
         :code $ quote
           ns app.comp.headlines $ :require
             respo-ui.core :refer $ hsl
@@ -278,9 +319,9 @@
             |escape-html :as escape-html
             app.util :refer $ grab-headline
             |md5 :default md5
-    |app.comp.slides $ %{} :FileEntry
+    'app.comp.slides $ %{} 'FileEntry
       :defs $ {}
-        |comp-control $ %{} :CodeEntry (:doc |) (:schema :dynamic)
+        'comp-control $ %{} 'CodeEntry (:doc |)
           :code $ quote
             defcomp comp-control (content)
               [] (reading-effect content)
@@ -301,7 +342,8 @@
                       :color $ hsl 200 90 80
                     fn (e d!) (js/document.body.requestFullscreen)
           :examples $ []
-        |comp-pager $ %{} :CodeEntry (:doc |) (:schema :dynamic)
+          :schema $ :: 'Dynamic
+        'comp-pager $ %{} 'CodeEntry (:doc |)
           :code $ quote
             defcomp comp-pager (page slides position)
               div
@@ -327,14 +369,15 @@
                     :on-click $ fn (e d!) (d! :page 0)
                   <> page
                 <> |/
-                span
-                  {}
-                    :style $ {} (:cursor :pointer)
-                    :on-click $ fn (e d!)
-                      d! :page $ dec (count slides)
-                  <> $ dec (count slides)
+                span $ {}
+                  :style $ {} (:cursor :pointer)
+                  :on-click $ fn (e d!)
+                    d! :page $ dec (count slides)
+                <> $ str
+                  dec $ count slides
           :examples $ []
-        |comp-prompter $ %{} :CodeEntry (:doc |) (:schema :dynamic)
+          :schema $ :: 'Dynamic
+        'comp-prompter $ %{} 'CodeEntry (:doc |)
           :code $ quote
             defcomp comp-prompter (page slides position)
               let
@@ -357,11 +400,16 @@
                       :color $ hsl 0 0 90
                       :font-style :italic
           :examples $ []
-        |comp-slides $ %{} :CodeEntry (:doc |) (:schema :dynamic)
+          :schema $ :: 'Dynamic
+        'comp-slides $ %{} 'CodeEntry (:doc |)
           :code $ quote
             defcomp comp-slides (slides page)
               let
-                  content $ get slides (or page 0)
+                  content $ unsafe-coerce
+                    option:unwrap-or
+                      get slides $ or page 0
+                      , |
+                    , 'String
                 div
                   {} (:class-name css/flex)
                     :style $ {}
@@ -372,28 +420,33 @@
                       {} $ :style
                         {} (:color :red) (:padding |20px) (:font-size 20)
                       <> $ str "|undefined page: " page
-                    comp-md-block (either content |)
-                      {}
-                        :class-name $ str-spaced |slide-area style-md-area
-                        :highlight $ fn (code lang)
-                          let
-                              code-lang $ get supported-langs lang
-                            if (some? code-lang)
-                              .-value $ .!highlight hljs code
-                                js-object $ :language code-lang
-                              do (js/console.log "|not highlighting:" lang code-lang) (escape-html code)
+                    comp-md-block content $ {}
+                      :class-name $ str-spaced |slide-area style-md-area
+                      :highlight $ fn (code lang)
+                        let
+                            code-lang-option $ get supported-langs lang
+                          if-let (code-lang code-lang-option)
+                            unsafe-coerce
+                              .-value $ unsafe-coerce
+                                .!highlight hljs code $ js-object (:language code-lang)
+                                , 'JsObject
+                              , 'String
+                            do (js/console.log "|not highlighting:" lang code-lang-option) (escape-html code)
                   comp-pager page slides $ {} (:right 16) (:bottom 8)
                   comp-prompter page slides $ {} (:bottom 48) (:right 16)
                   if readable? $ comp-control content
           :examples $ []
-        |reading-effect $ %{} :CodeEntry (:doc |) (:schema :dynamic)
+          :schema $ :: 'Dynamic
+        'reading-effect $ %{} 'CodeEntry (:doc |)
           :code $ quote
             defeffect reading-effect (content) (action el at?)
               if (= action :update)
-                synthesizeAzureSpeech (turn-readable content) (get-env |azure-key)
+                synthesizeAzureSpeech (turn-readable content)
+                  option:unwrap-or (get-env |azure-key) |
                   fn () $ println |done
           :examples $ []
-        |style-md-area $ %{} :CodeEntry (:doc |) (:schema :dynamic)
+          :schema $ :: 'Dynamic
+        'style-md-area $ %{} 'CodeEntry (:doc |)
           :code $ quote
             defstyle style-md-area $ {}
               |& $ {} (:overflow :auto) (:position :absolute) (:top 0) (:left 0) (:width |100%) (:height |100%) (:padding 40) (:font-size 40)
@@ -401,44 +454,56 @@
                 :padding-bottom 160
               "|& code" $ {} (:font-size |inherit)
           :examples $ []
-        |style-pager $ %{} :CodeEntry (:doc |) (:schema :dynamic)
+          :schema $ :: 'Dynamic
+        'style-pager $ %{} 'CodeEntry (:doc |)
           :code $ quote
             defstyle style-pager $ {}
               |& $ {} (:position :absolute) (:font-family ui/font-code) (:font-size 24)
                 :color $ hsl 0 0 1 0.6
           :examples $ []
-        |supported-langs $ %{} :CodeEntry (:doc |) (:schema :dynamic)
+          :schema $ :: 'Dynamic
+        'supported-langs $ %{} 'CodeEntry (:doc |)
           :code $ quote
             def supported-langs $ {} (|clojure |clojure) (|bash |bash) (|clj |clojure) (|javascript |javascript) (|js |javascript) (|ts |typescript) (|json |json)
           :examples $ []
-        |turn-readable $ %{} :CodeEntry (:doc |) (:schema :dynamic)
+          :schema $ :: 'Dynamic
+        'turn-readable $ %{} 'CodeEntry (:doc |)
           :code $ quote
             defn turn-readable (content)
               -> (split-block content)
                 filter $ fn (piece)
-                  and
-                    = :text $ first piece
-                    not $ .starts-with?
-                      .join-str (last piece) |
-                      , |![]
-                    not $ .starts-with?
-                      .join-str (last piece) |
-                      , "|> "
+                  let
+                      piece-list $ unsafe-coerce piece 'List
+                      text-lines $ unsafe-coerce
+                        option:unwrap-or (last piece-list) ([])
+                        , 'List
+                      readable-text $ join-str text-lines |
+                    and
+                      = :text $ option:unwrap-or (first piece-list) :unknown
+                      not $ .starts-with? readable-text |![]
+                      not $ .starts-with? readable-text "|> "
                 map $ fn (piece)
                   -> (rest piece)
                     map $ fn (xs)
                       -> xs
                         map $ fn (line)
-                          -> line
-                            .!replace (new js/RegExp |^#+ |g) |
-                            .!replace (new js/RegExp |^\*) &newline
-                            .!replace (new js/RegExp |https?://\S+ |g) "|见链接."
-                        .join-str "| , "
-                    .join-str &newline
-                .join-str &newline
+                          let
+                              s1 $ unsafe-coerce
+                                .!replace (unsafe-coerce line 'String) (new js/RegExp |^#+ |g) |
+                                , 'String
+                              s2 $ unsafe-coerce
+                                .!replace s1 (new js/RegExp |^\*) &newline
+                                , 'String
+                            unsafe-coerce
+                              .!replace s2 (new js/RegExp |https?://\S+ |g) "|见链接."
+                              , 'String
+                        join-str "| , "
+                    join-str &newline
+                join-str &newline
                 ; w-log
           :examples $ []
-      :ns $ %{} :NsEntry (:doc |)
+          :schema $ :: 'Dynamic
+      :ns $ %{} 'NsEntry (:doc |)
         :code $ quote
           ns app.comp.slides $ :require
             respo-ui.core :refer $ hsl
@@ -457,73 +522,83 @@
             feather.core :refer $ comp-icon
             |../entry/play-audio.mjs :refer $ synthesizeAzureSpeech
             respo-md.util.core :refer $ split-block
-    |app.config $ %{} :FileEntry
+    'app.config $ %{} 'FileEntry
       :defs $ {}
-        |dev? $ %{} :CodeEntry (:doc |) (:schema :dynamic)
+        'dev? $ %{} 'CodeEntry (:doc |)
           :code $ quote
-            def dev? $ = |dev (get-env |mode |release)
+            def dev? $ = |dev
+              option:unwrap-or (get-env |mode) |release
           :examples $ []
-        |initial-content $ %{} :CodeEntry (:doc |) (:schema :dynamic)
+          :schema $ :: 'Dynamic
+        'initial-content $ %{} 'CodeEntry (:doc |)
           :code $ quote
             def initial-content $ get-env |content
           :examples $ []
-        |readable? $ %{} :CodeEntry (:doc |) (:schema :dynamic)
+          :schema $ :: 'Dynamic
+        'readable? $ %{} 'CodeEntry (:doc |)
           :code $ quote
-            def readable? $ = |on (get-env |readable)
+            def readable? $ = |on
+              option:unwrap-or (get-env |readable) |
           :examples $ []
-        |site $ %{} :CodeEntry (:doc |) (:schema :dynamic)
+          :schema $ :: 'Dynamic
+        'site $ %{} 'CodeEntry (:doc |)
           :code $ quote
             def site $ {} (:title "|Sedum Slide") (:icon |http://cdn.tiye.me/logo/sedum-icon.png) (:storage-key |sedum-slide)
           :examples $ []
-      :ns $ %{} :NsEntry (:doc |)
+          :schema $ :: 'Dynamic
+      :ns $ %{} 'NsEntry (:doc |)
         :code $ quote (ns app.config)
-    |app.main $ %{} :FileEntry
+    'app.main $ %{} 'FileEntry
       :defs $ {}
-        |*reel $ %{} :CodeEntry (:doc |) (:schema :dynamic)
+        '*reel $ %{} 'CodeEntry (:doc |)
           :code $ quote
             defatom *reel $ -> reel-schema/reel (assoc :base schema/store) (assoc :store schema/store)
           :examples $ []
-        |dispatch! $ %{} :CodeEntry (:doc |) (:schema :dynamic)
+          :schema $ :: 'Dynamic
+        'dispatch! $ %{} 'CodeEntry (:doc |)
           :code $ quote
             defn dispatch! (op)
-              when
-                and config/dev?
-                  not= (nth op 0) :states
-                  not= (nth op 0) :hydrate-storage
-                println |Dispatch: op
+              let
+                  op-name $ option:unwrap-or (nth op 0) :unknown
+                when
+                  and config/dev? (not= op-name :states) (not= op-name :hydrate-storage)
+                  println |Dispatch: op
               reset! *reel $ reel-updater updater @*reel op
           :examples $ []
-        |handle-direction! $ %{} :CodeEntry (:doc |) (:schema :dynamic)
+          :schema $ :: 'Dynamic
+        'handle-direction! $ %{} 'CodeEntry (:doc |)
           :code $ quote
             defn handle-direction! (event)
-              when
-                = :slides $ :router (:store @*reel)
-                case-default (.-key event) nil
-                  |ArrowRight $ do
-                    dispatch! $ :: :slide-down
-                    scroll-top!
-                  |ArrowLeft $ do
-                    dispatch! $ :: :slide-up
-                    scroll-top!
-              when
-                and
-                  = |e $ .-key event
-                  .-metaKey event
-                let
-                    router $ :router (:store @*reel)
+              let
+                  event-object $ unsafe-coerce event 'JsObject
+                  reel-map $ unsafe-coerce @*reel 'Map
+                  store $ unsafe-coerce (&map:get reel-map :store) 'Map
+                  router $ &map:get store :router
+                  key $ unsafe-coerce (.-key event-object) 'String
+                  meta? $ unsafe-coerce (.-metaKey event-object) 'Bool
+                  shift? $ unsafe-coerce (.-shiftKey event-object) 'Bool
+                when (= :slides router)
+                  case-default key nil
+                    |ArrowRight $ do
+                      dispatch! $ :: :slide-down
+                      scroll-top!
+                    |ArrowLeft $ do
+                      dispatch! $ :: :slide-up
+                      scroll-top!
+                when
+                  and (= |e key) meta?
                   case-default router (println |TODO)
                     :edit-slide $ println |do...
-                    :slides $ if (.-shiftKey event)
+                    :slides $ if shift?
                       dispatch! $ :: :router :home
                       dispatch! $ :: :router :edit-slide
                     :headlines $ dispatch! (:: :router :slides)
-              when
-                and
-                  = |i $ .-key event
-                  .-metaKey event
-                dispatch! $ :: :router :headlines
+                when
+                  and (= |i key) meta?
+                  dispatch! $ :: :router :headlines
           :examples $ []
-        |load-content! $ %{} :CodeEntry (:doc |) (:schema :dynamic)
+          :schema $ :: 'Dynamic
+        'load-content! $ %{} 'CodeEntry (:doc |)
           :code $ quote
             defn load-content! (url)
               hint-fn $ {} (:async true)
@@ -534,7 +609,8 @@
                   to-calcit-data $ .!split file pattern-divider
                 dispatch! $ :: :router :slides
           :examples $ []
-        |main! $ %{} :CodeEntry (:doc |) (:schema :dynamic)
+          :schema $ :: 'Dynamic
+        'main! $ %{} 'CodeEntry (:doc |)
           :code $ quote
             defn main! ()
               println "|Running mode:" $ if config/dev?
@@ -549,27 +625,34 @@
               render-app!
               add-watch *reel :changes $ fn (r p) (render-app!)
               listen-devtools! |a dispatch!
-              js/window.addEventListener |beforeunload persist-storage!
+              .!addEventListener (unsafe-coerce js/window 'JsObject) |beforeunload persist-storage!
               repeat! 60 persist-storage!
               let
-                  raw $ js/localStorage.getItem (:storage-key config/site)
-                when (some? raw)
-                  dispatch! $ :: :hydrate-storage (parse-cirru-edn raw)
-              .!addEventListener js/window |keydown handle-direction!
+                  storage-key $ unsafe-coerce (&map:get config/site :storage-key) 'String
+                  raw $ js/localStorage.getItem storage-key
+                when (js-present? raw)
+                  dispatch! $ :: :hydrate-storage
+                    parse-cirru-edn $ unsafe-coerce raw 'String
+              .!addEventListener (unsafe-coerce js/window 'JsObject) |keydown handle-direction!
               if-let (content config/initial-content) (load-content! content)
               println "|App started."
           :examples $ []
-        |mount-target $ %{} :CodeEntry (:doc |) (:schema :dynamic)
+          :schema $ :: 'Dynamic
+        'mount-target $ %{} 'CodeEntry (:doc |)
           :code $ quote
             def mount-target $ js/document.querySelector |.app
           :examples $ []
-        |persist-storage! $ %{} :CodeEntry (:doc |) (:schema :dynamic)
+          :schema $ :: 'Dynamic
+        'persist-storage! $ %{} 'CodeEntry (:doc |)
           :code $ quote
             defn persist-storage! (? e)
-              js/localStorage.setItem (:storage-key config/site)
-                format-cirru-edn $ :store @*reel
+              let
+                  storage-key $ unsafe-coerce (&map:get config/site :storage-key) 'String
+                  reel-map $ unsafe-coerce @*reel 'Map
+                js/localStorage.setItem storage-key $ format-cirru-edn (&map:get reel-map :store)
           :examples $ []
-        |reload! $ %{} :CodeEntry (:doc |) (:schema :dynamic)
+          :schema $ :: 'Dynamic
+        'reload! $ %{} 'CodeEntry (:doc |)
           :code $ quote
             defn reload! () $ if (nil? build-errors)
               do (remove-watch *reel :changes) (clear-cache!)
@@ -578,11 +661,13 @@
                 hud! |ok~ |Ok
               hud! |error build-errors
           :examples $ []
-        |render-app! $ %{} :CodeEntry (:doc |) (:schema :dynamic)
+          :schema $ :: 'Dynamic
+        'render-app! $ %{} 'CodeEntry (:doc |)
           :code $ quote
             defn render-app! () $ render! mount-target (comp-container @*reel) dispatch!
           :examples $ []
-        |repeat! $ %{} :CodeEntry (:doc |) (:schema :dynamic)
+          :schema $ :: 'Dynamic
+        'repeat! $ %{} 'CodeEntry (:doc |)
           :code $ quote
             defn repeat! (duration cb)
               js/setTimeout
@@ -590,15 +675,23 @@
                   repeat! (* 1000 duration) cb
                 * 1000 duration
           :examples $ []
-        |scroll-top! $ %{} :CodeEntry (:doc |) (:schema :dynamic)
+          :schema $ :: 'Dynamic
+        'scroll-top! $ %{} 'CodeEntry (:doc |)
           :code $ quote
-            defn scroll-top! () $ -> (js/document.querySelector |.slide-area) (.-scrollTop) (set! 0)
+            defn scroll-top! () $ let
+                target $ js/document.querySelector |.slide-area
+              when (js-present? target)
+                set!
+                  .-scrollTop $ unsafe-coerce target 'JsObject
+                  , 0
           :examples $ []
-        |ssr? $ %{} :CodeEntry (:doc |) (:schema :dynamic)
+          :schema $ :: 'Dynamic
+        'ssr? $ %{} 'CodeEntry (:doc |)
           :code $ quote
-            def ssr? $ some? (js/document.querySelector |meta.respo-ssr)
+            def ssr? $ js-present? (js/document.querySelector |meta.respo-ssr)
           :examples $ []
-      :ns $ %{} :NsEntry (:doc |)
+          :schema $ :: 'Dynamic
+      :ns $ %{} 'NsEntry (:doc |)
         :code $ quote
           ns app.main $ :require
             respo.core :refer $ render! clear-cache! realize-ssr! *changes-logger
@@ -617,9 +710,9 @@
             |highlight.js/lib/languages/json :default json-lang
             |./calcit.build-errors :default build-errors
             |bottom-tip :default hud!
-    |app.schema $ %{} :FileEntry
+    'app.schema $ %{} 'FileEntry
       :defs $ {}
-        |store $ %{} :CodeEntry (:doc |) (:schema :dynamic)
+        'store $ %{} 'CodeEntry (:doc |)
           :code $ quote
             def store $ {}
               :states $ {}
@@ -627,63 +720,65 @@
               :slides $ []
               :page 0
           :examples $ []
-      :ns $ %{} :NsEntry (:doc |)
+          :schema $ :: 'Dynamic
+      :ns $ %{} 'NsEntry (:doc |)
         :code $ quote (ns app.schema)
-    |app.updater $ %{} :FileEntry
+    'app.updater $ %{} 'FileEntry
       :defs $ {}
-        |updater $ %{} :CodeEntry (:doc |) (:schema :dynamic)
+        'updater $ %{} 'CodeEntry (:doc |)
           :code $ quote
             defn updater (store op op-id op-time)
-              tag-match op
-                (:states cursor s) (update-states store cursor s)
-                (:content c) (assoc store :content c)
-                (:router r) (assoc store :router r)
-                (:render-slides d)
-                  -> store (assoc :slides d) (assoc :router :slides)
-                (:slide-up)
-                  update store :page $ fn (page)
-                    if (> page 0) (dec page) page
-                (:page p) (assoc store :page p)
-                (:slide-down)
-                  update store :page $ fn (page)
-                    if
-                      < (inc page)
-                        count $ :slides store
+              let
+                  store-map $ unsafe-coerce store 'Map
+                  page $ unsafe-coerce (&map:get store-map :page) 'Number
+                  slides $ unsafe-coerce (&map:get store-map :slides) 'List
+                match op
+                  (:states cursor s) (update-states store-map cursor s)
+                  (:content c) (assoc store-map :content c)
+                  (:router r) (assoc store-map :router r)
+                  (:render-slides d)
+                    -> store-map (assoc :slides d) (assoc :router :slides)
+                  (:slide-up)
+                    assoc store-map :page $ if (> page 0) (dec page) page
+                  (:page p) (assoc store-map :page p)
+                  (:slide-down)
+                    assoc store-map :page $ if
+                      < (inc page) (count slides)
                       inc page
                       , page
-                (:hydrate-storage d) d
-                (:edit-slide op-data)
-                  let
-                      page $ :page store
+                  (:hydrate-storage d) d
+                  (:edit-slide op-data)
                     if
                       and
-                        .blank? $ or op-data |
-                        < (inc page)
-                          count $ :slides store
-                      dissoc-in store $ [] :slides page
-                      assoc-in store ([] :slides page) op-data
-                (:add-slide op-data)
-                  -> store
-                    update :slides $ fn (slides) (.assoc-after slides op-data "|(New page)")
-                    update :page inc
-                    assoc :router :edit-slide
-                _ $ do (eprintln op) store
+                        blank? $ unsafe-coerce (or op-data |) 'String
+                        < (inc page) (count slides)
+                      dissoc-in store-map $ [] :slides page
+                      assoc-in store-map ([] :slides page) op-data
+                  (:add-slide op-data)
+                    -> store-map
+                      assoc :slides $ .assoc-after slides op-data "|(New page)"
+                      assoc :page $ inc page
+                      assoc :router :edit-slide
+                  _ $ do (eprintln op) store-map
           :examples $ []
-      :ns $ %{} :NsEntry (:doc |)
+          :schema $ :: 'Dynamic
+      :ns $ %{} 'NsEntry (:doc |)
         :code $ quote
           ns app.updater $ :require
             respo.cursor :refer $ update-states
             app.config :refer $ dev?
-    |app.util $ %{} :FileEntry
+    'app.util $ %{} 'FileEntry
       :defs $ {}
-        |grab-headline $ %{} :CodeEntry (:doc |) (:schema :dynamic)
+        'grab-headline $ %{} 'CodeEntry (:doc |)
           :code $ quote
             defn grab-headline (slide)
-              -> (.split slide &newline)
+              ->
+                split (unsafe-coerce slide 'String) &newline
                 filter $ fn (line)
-                  not $ .blank? line
+                  not $ blank? (unsafe-coerce line 'String)
                 first
           :examples $ []
-      :ns $ %{} :NsEntry (:doc |)
+          :schema $ :: 'Dynamic
+      :ns $ %{} 'NsEntry (:doc |)
         :code $ quote
           ns app.util $ :require
