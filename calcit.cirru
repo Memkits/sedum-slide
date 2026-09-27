@@ -272,7 +272,7 @@
                   [] (md5 slide)
                     let
                         headline $ grab-headline slide
-                        indent $ get-indent $ or headline |
+                        indent $ get-indent $ option:unwrap-or headline |
                         selected? $ = page idx
                       div
                         {} (:class-name css/row-middle)
