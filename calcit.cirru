@@ -3,7 +3,7 @@
   :about "|Machine-generated snapshot. Do not edit directly — changes will be overwritten. Use `calcit query` to inspect and `calcit edit`/`calcit tree` to modify. Run `calcit docs agents --contract` before mutations; use `--full` for first orientation or changed contract digest. Manual edits must follow format and schema conventions, then run `calcit edit format`."
   :package |app
   :entries $ {} $ :default
-    {} (:description |) (:init-fn 'app.main/main!) (:mode :native) (:reload-fn 'app.main/reload!)
+    {} (:description |) (:init-fn 'app.main/main!) (:mode :js) (:reload-fn 'app.main/reload!) (:target :browser)
       :feature-policy $ {}
       :modules $ [] |respo.calcit/ |respo-ui.calcit/ |respo-markdown.calcit/ |reel.calcit/ |respo-feather.calcit/
       :type-slots $ {}
@@ -127,8 +127,15 @@
           :schema $ :: 'Fn $ {} (:return 'respo.schema/Effect)
             :args $ []
             :features $ #{} :js-ffi
+        'make-regex $ %{} 'CodeEntry (:doc |)
+          :code $ quote $ defn make-regex (pattern)
+            unsafe-coerce (new js/RegExp pattern) 'app.comp.container/RegexHost
+          :examples $ []
+          :schema $ :: 'Fn $ {} (:return 'app.comp.container/RegexHost)
+            :args $ [] 'String
+            :features $ #{} :js-ffi
         'pattern-divider $ %{} 'CodeEntry (:doc |)
-          :code $ quote $ def pattern-divider (new js/RegExp |\n-{3,}\n)
+          :code $ quote $ def pattern-divider (make-regex |\n-{3,}\n)
           :examples $ []
           :schema $ :: 'app.comp.container/RegexHost
         'render-entry $ %{} 'CodeEntry (:doc |)
@@ -314,10 +321,6 @@
           :examples $ []
           :schema $ :: 'Fn $ {} (:return 'Number)
             :args $ [] 'String
-        're-sharp $ %{} 'CodeEntry (:doc |)
-          :code $ quote $ def re-sharp (new js/RegExp |# |g)
-          :examples $ []
-          :schema $ :: 'JsObject
         'style-head-text $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defstyle style-head-text
             {} $ |& $ {}
@@ -524,7 +527,7 @@
         'style-pager $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defstyle style-pager
             {} $ |& $ {} (:position :absolute) (:font-family ui/font-code) (:font-size 24)
-              :color $ hsl 0 0 1 $ %some 0.6
+              :color $ hsl 0 0 1 $ Option :some 0.6
           :examples $ []
           :schema $ :: 'String
         'supported-langs $ %{} 'CodeEntry (:doc |)
@@ -655,27 +658,26 @@
                 key $ keyboard :key
                 meta? $ keyboard :meta-key?
                 shift? $ keyboard :shift-key?
-              do
-                when (= :slides router)
-                  case-default key &unit
-                    |ArrowRight $ do
-                      dispatch! $ :: :slide-down
-                      scroll-top!
-                    |ArrowLeft $ do
-                      dispatch! $ :: :slide-up
-                      scroll-top!
-                when
-                  and (= |e key) meta?
-                  case-default router (println |TODO)
-                    :edit-slide $ println |do...
-                    :slides $ if shift?
-                      dispatch! $ :: :router :home
-                      dispatch! $ :: :router :edit-slide
-                    :headlines $ dispatch! $ :: :router :slides
-                when
-                  and (= |i key) meta?
-                  dispatch! $ :: :router :headlines
-                , &unit
+              when (= :slides router)
+                case-default key &unit
+                  |ArrowRight $ do
+                    dispatch! $ :: :slide-down
+                    scroll-top!
+                  |ArrowLeft $ do
+                    dispatch! $ :: :slide-up
+                    scroll-top!
+              when
+                and (= |e key) meta?
+                case-default router (println |TODO)
+                  :edit-slide $ println |do...
+                  :slides $ if shift?
+                    dispatch! $ :: :router :home
+                    dispatch! $ :: :router :edit-slide
+                  :headlines $ dispatch! $ :: :router :slides
+              when
+                and (= |i key) meta?
+                dispatch! $ :: :router :headlines
+              , &unit
           :examples $ []
           :schema $ :: 'Fn $ {} (:return 'Unit)
             :args $ [] 'js-ffi.browser/EventHost
@@ -778,11 +780,10 @@
             :args $ []
         'repeat! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn repeat! (duration cb)
-            do
-              set-timeout!
-                fn () (cb) (repeat! duration cb)
-                * 1000 duration
-              , &unit
+            set-timeout!
+              fn () (cb) (repeat! duration cb)
+              * 1000 duration
+            , &unit
           :examples $ []
           :schema $ :: 'Fn $ {} (:return 'Unit)
             :args $ [] 'Number $ :: 'Fn
@@ -790,14 +791,13 @@
                 :args $ []
         'scroll-top! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn scroll-top! ()
-            do
-              let
-                  maybe-target $ query-selector |.slide-area
-                when (option:some? maybe-target)
-                  js-set
-                    unsafe-coerce (option:unwrap maybe-target) 'app.main/SlideAreaHost
-                    , :scroll-top 0
-              , &unit
+            let
+                maybe-target $ query-selector |.slide-area
+              when (option:some? maybe-target)
+                js-set
+                  unsafe-coerce (option:unwrap maybe-target) 'app.main/SlideAreaHost
+                  , :scroll-top 0
+            , &unit
           :examples $ []
           :schema $ :: 'Fn $ {} (:return 'Unit)
             :args $ []
