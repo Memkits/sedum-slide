@@ -12,7 +12,6 @@
   "license": "MIT",
   "devDependencies": {
     "bottom-tip": "^0.1.5",
-    "concurrently": "^10.0.5",
     "vite": "8.3.1"
   },
   "dependencies": {
@@ -27,9 +26,9 @@
     "microsoft-cognitiveservices-speech-sdk": "1.52.0"
   },
   "scripts": {
-    "compile": "calcit calcit.cirru js",
+    "compile": "calcit calcit.cirru",
     "build": "yarn compile && vite build",
-    "dev": "yarn compile && concurrently --kill-others \"calcit calcit.cirru js -w\" \"vite\"",
+    "dev": "yarn compile && vite",
     "release": "yarn build"
   }
 }
