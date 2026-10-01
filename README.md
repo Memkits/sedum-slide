@@ -23,6 +23,19 @@ Clicks on pager:
 
 https://github.com/calcit-lang/respo-calcit-workflow
 
+Use Calcit/procs 0.27.0, Node.js 24 and Yarn 4.18.0 with calcit.cirru/deps.cirru.
+Run `caps --ci`, `yarn install --immutable`, then `yarn dev` or `yarn build`.
+Development compiles initially, then jointly runs Calcit watch and Vite; either
+exiting stops the other. Builds compile once.
+
+CI keeps canonical formatting, strict init/reload and all nine application
+namespace public contracts, followed by the actual build. COS action v1.1.1
+internally verifies the public frontend files; no independent checker or
+repeated migration diagnostic suite is needed. Preview uploads are isolated
+by PR/run/attempt and concurrency groups by PR. Production Memkits/sedum-slide/
+prefix, existing upload policy and original server sync paths are unchanged,
+as are slide content, Markdown, speech adapters, storage and keyboard controls.
+
 ### License
 
 MIT
