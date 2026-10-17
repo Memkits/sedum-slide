@@ -36,14 +36,22 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@calcit/procs@npm:0.27.0":
-  version: 0.27.0
-  resolution: "@calcit/procs@npm:0.27.0"
+"@calcit/finger-vec@npm:0.1.1":
+  version: 0.1.1
+  resolution: "@calcit/finger-vec@npm:0.1.1"
+  checksum: 10c0/c75e7f58924a7bb226ca4a47f6b0702021796b096c04d7fb7e9a92cb49b11ca64d654ea10d78bde29a8ac2d2d05ef9e7865efd2b358af2ca989d950b04d529a8
+  languageName: node
+  linkType: hard
+
+"@calcit/procs@npm:0.30.1-alpha.4":
+  version: 0.30.1-alpha.4
+  resolution: "@calcit/procs@npm:0.30.1-alpha.4"
   dependencies:
+    "@calcit/finger-vec": "npm:0.1.1"
     "@calcit/ternary-tree": "npm:0.0.26"
-    "@cirru/parser.ts": "npm:^0.0.9"
+    "@cirru/parser.ts": "npm:0.0.10"
     "@cirru/writer.ts": "npm:^0.1.9"
-  checksum: 10c0/85edf1724beaf5e3b895f456b9d81ae93100316802b19bc20ab7cbcc61e295892e787c2f9cca0c9c231ba1cc3c3d320ae158d3f8c9fd39eda24500c56ebe99b1
+  checksum: 10c0/5613c2f4ba262f37167e4a7862449b1e8466fe5d92ecb0e2728f420f4494d37d1da5299685b61514822b535c1ad732e41caa1f35ae09e410c26b2c0c5d6d8166
   languageName: node
   linkType: hard
 
@@ -54,10 +62,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@cirru/parser.ts@npm:^0.0.9":
-  version: 0.0.9
-  resolution: "@cirru/parser.ts@npm:0.0.9"
-  checksum: 10c0/3b13623b8f627ac81adae0cb6a4e3664f0da09115a997ca9b78b8d5d0b0f9b9b18c1ad847e068831cb1052c7da2a00329d2af04421b1024a004eef0ddca5fd7a
+"@cirru/parser.ts@npm:0.0.10":
+  version: 0.0.10
+  resolution: "@cirru/parser.ts@npm:0.0.10"
+  checksum: 10c0/d66a16bcf49c60865fb8e733a5c219289a7c755c6400dea7e7a8d3166ee7841a623030f35f8ee96e232bc40f974f1b79a0ccdf089947fc5779699485102b5995
   languageName: node
   linkType: hard
 
@@ -262,24 +270,6 @@ __metadata:
   checksum: 10c0/469088f0020797dfbb61b6ce3972c91d95d79df8aacca55841ea93ac59ef3209bb04be8212b6265dfbafb7583a58dd73ca2f14e4feae36d3333a4f1509dd2eef
   languageName: node
   linkType: hard
-
-"calcit-workflow@workspace:.":
-  version: 0.0.0-use.local
-  resolution: "calcit-workflow@workspace:."
-  dependencies:
-    "@calcit/procs": "npm:0.27.0"
-    bottom-tip: "npm:^0.1.5"
-    cirru-color: "npm:^0.2.4"
-    copy-text-to-clipboard: "npm:^3.2.1"
-    dayjs: "npm:^1.11.21"
-    escape-html: "npm:^1.0.3"
-    feather-icons: "npm:^4.29.2"
-    highlight.js: "npm:^11.11.1"
-    md5: "npm:^2.3.0"
-    microsoft-cognitiveservices-speech-sdk: "npm:1.52.0"
-    vite: "npm:8.3.1"
-  languageName: unknown
-  linkType: soft
 
 "camelize@npm:^1.0.0":
   version: 1.0.1
@@ -886,6 +876,24 @@ __metadata:
   checksum: 10c0/43dfd083fb625a254c039bddfe04f3dd1d7cf8b84291ead835e3702e8050b7fee5e702c8280d3000b2541c0e24aaa3110bac4251bc2ca50a85fe1c8bbb48d2f5
   languageName: node
   linkType: hard
+
+"sedum-slide@workspace:.":
+  version: 0.0.0-use.local
+  resolution: "sedum-slide@workspace:."
+  dependencies:
+    "@calcit/procs": "npm:0.30.1-alpha.4"
+    bottom-tip: "npm:^0.1.5"
+    cirru-color: "npm:^0.2.4"
+    copy-text-to-clipboard: "npm:^3.2.1"
+    dayjs: "npm:^1.11.21"
+    escape-html: "npm:^1.0.3"
+    feather-icons: "npm:^4.29.2"
+    highlight.js: "npm:^11.11.1"
+    md5: "npm:^2.3.0"
+    microsoft-cognitiveservices-speech-sdk: "npm:1.52.0"
+    vite: "npm:8.3.1"
+  languageName: unknown
+  linkType: soft
 
 "semver@npm:^7.3.5":
   version: 7.8.5

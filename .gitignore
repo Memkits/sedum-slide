@@ -11,3 +11,6 @@ dist/
 .yarn/*.gz
 .pnp.cjs
 .pnp.loader.mjs
+.calcit/
+compact.cirru
+package.cirru

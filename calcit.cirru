@@ -5,8 +5,8 @@
   :entries $ {} $ :default
     {} (:description |) (:init-fn 'app.main/main!) (:mode :js) (:reload-fn 'app.main/reload!) (:target :browser)
       :feature-policy $ {}
-      :modules $ [] |respo.calcit/ |respo-ui.calcit/ |respo-markdown.calcit/ |reel.calcit/ |respo-feather.calcit/
-      :type-slots $ {}
+      :modules $ [] |respo.calcit/ |respo-ui.calcit/ |respo-markdown.calcit/ |reel.calcit/ |respo-feather.calcit/ |js-ffi/
+      :type-slots $ {} $ :dispatch-op |app.schema/Op
   :files $ {}
     'app.comp.container $ %{} 'FileEntry
       :defs $ {}
@@ -27,7 +27,7 @@
         'comp-container $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defcomp comp-container (reel)
             let
-                store $ decode-map-as (&map:get reel :store) app.schema/Store
+                store $ reel :store
                 states store.:states
                 router store.:router
                 slides store.:slides
@@ -35,31 +35,31 @@
               div
                 {} $ :class-name $ str-spaced css/global css/preset css/fullscreen css/row
                 comp-sidebar router
-                case-default router
-                  div
-                    {} $ :class-name css/expand
-                    <> $ str |Unknown: router
+                match router
                   :slides $ comp-slides slides page
                   :headlines $ comp-headlines slides page
-                  :edit-slide $ comp-edit-slide (>> states :edit) (get slides page)
+                  :edit-slide $ comp-edit-slide (>> states :edit)
+                    .unwrap-or (get slides page) |
                   :home $ comp-draft (>> states :draft) slides
-                when dev? $ comp-reel (>> states :reel) reel $ {}
+                  _ $ div
+                    {} $ :class-name css/expand
+                    <> $ str |Unknown: router
+                when dev? $ comp-reel (>> states :reel) (reel-view/view-data reel) ({})
                 when dev? $ comp-inspect |Store store $ {} (:bottom 0) (:left 100)
           :examples $ []
           :schema $ :: 'Fn $ {} (:return 'respo.schema/Component)
-            :args $ [] 'app.schema/Reel
+            :args $ [] $ :: 'reel.typed/State 'app.schema/Op 'app.schema/Store
         'comp-draft $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defcomp comp-draft (states slides)
             let
-                states-map $ unsafe-coerce states 'Map
-                slides-list $ unsafe-coerce slides 'List
-                cursor $ &map:get states-map :cursor
+                cursor $ decode-map-as
+                  .unwrap $ get states :cursor
+                  :: 'List 'Dynamic
                 fallback-state $ {} $ :content
-                  join-str slides-list $ str &newline |---- &newline
-                state $ unsafe-coerce
-                  option:unwrap-or (get states-map :data) fallback-state
-                  , 'Map
-                content $ unsafe-coerce (&map:get state :content) 'String
+                  join-string slides $ str &newline |---- &newline
+                raw-state $ .unwrap-or (get states :data) nil
+                state $ if (nil? raw-state) fallback-state $ decode-map-as raw-state (:: 'Map 'Tag 'String)
+                content $ .unwrap $ get state :content
               [] (effect-focus)
                 div
                   {} $ :class-name $ str-spaced css/flex css/column css/font-code
@@ -71,8 +71,8 @@
                     button
                       {} (:class-name css/button)
                         :on-click $ fn (e d!)
-                          d! :render-slides $ split-regex content pattern-divider
-                          d! cursor nil
+                          d! $ app-schema/Op :render-slides $ split-regex content pattern-divider
+                          d! $ app-schema/Op :states cursor nil
                       <> "|Split text"
                   textarea $ {}
                     :class-name $ str-spaced css/flex css/textarea css/font-code
@@ -81,29 +81,33 @@
                     :value content
                     :placeholder |Slides
                     :on-input $ fn (e d!)
-                      d! cursor $ assoc state :content $ unsafe-coerce
-                        &map:get (unsafe-coerce e 'Map) :value
-                        , 'String
+                      d! $ app-schema/Op :states cursor $ assoc state :content
+                        decode-map-as
+                          .unwrap $ get
+                            decode-map-as e $ :: 'Map 'Tag 'Dynamic
+                            , :value
+                          , 'String
                     :on-keydown $ fn (e d!)
                       let
-                          event $ unsafe-coerce
-                            &map:get
-                              unsafe-coerce e $ :: 'Map 'Tag 'Dynamic
+                          event $ keyboard-event-host $ .unwrap
+                            get
+                              decode-map-as e $ :: 'Map 'Tag 'Dynamic
                               , :event
-                            , 'js-ffi.browser/KeyboardEventHost
                           key $ event :key
                           meta? $ event :meta-key?
                           shift? $ event :shift-key?
                         if
                           or
-                            and (= |e key) shift? meta?
+                            and
+                              or (= |e key) (= |E key)
+                              , shift? meta?
                             and (= |Enter key) meta?
                           do
-                            d! :render-slides $ split-regex content pattern-divider
-                            d! cursor &unit
+                            d! $ app-schema/Op :render-slides $ split-regex content pattern-divider
+                            d! $ app-schema/Op :states cursor nil
           :examples $ []
           :schema $ :: 'Fn $ {} (:return 'respo.schema/Component)
-            :args $ [] (:: 'Map 'Tag 'Dynamic) (:: 'List 'String)
+            :args $ [] (:: 'Map 'Dynamic 'Dynamic) (:: 'List 'String)
             :features $ #{} :js-ffi
         'comp-sidebar $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defcomp comp-sidebar (router)
@@ -117,7 +121,7 @@
           :schema $ :: 'Fn $ {} (:return 'respo.schema/Component)
             :args $ [] 'Tag
         'effect-focus $ %{} 'CodeEntry (:doc |)
-          :code $ quote $ defeffect effect-focus () (action el *local at-place?)
+          :code $ quote $ defeffect effect-focus () (action el at-place?)
             when (= :mount action)
               let
                   maybe-target $ element-query-selector (unsafe-coerce el 'js-ffi.browser/DomElementHost) |textarea
@@ -143,14 +147,15 @@
             span
               {}
                 :style $ merge $ {} (:cursor :pointer) (:margin "|16px 0")
-                :on-click $ fn (e d!) (d! :router router-name)
+                :on-click $ fn (e d!)
+                  d! $ app-schema/Op :router router-name
               comp-i icon 18 $ if (= current-page router-name) |black |#ccc
           :examples $ []
           :schema $ :: 'Fn $ {} (:return 'respo.schema/Element)
             :args $ [] 'Tag 'Tag 'Tag
         'split-regex $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn split-regex (text pattern)
-            assert-type
+            decode-map-as
               ->
                 .split-regex (unsafe-coerce text 'app.comp.container/StringHost) pattern
                 to-calcit-data true
@@ -188,19 +193,20 @@
             app.comp.headlines :refer $ comp-headlines
             app.comp.edit-slide :refer $ comp-edit-slide
             app.schema :as app-schema
-            js-ffi.browser :refer $ [] DomElementHost KeyboardEventHost element-query-selector element-focus!
+            js-ffi.browser :refer $ DomElementHost element-query-selector element-focus! keyboard-event-host
+            reel.typed-compat :as reel-view
     'app.comp.edit-slide $ %{} 'FileEntry
       :defs $ {}
         'comp-edit-slide $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defcomp comp-edit-slide (states slide)
             let
-                states-map $ unsafe-coerce states 'Map
-                cursor $ &map:get states-map :cursor
+                cursor $ decode-map-as
+                  .unwrap $ get states :cursor
+                  :: 'List 'Dynamic
                 fallback-state $ {} $ :draft slide
-                state $ unsafe-coerce
-                  option:unwrap-or (get states-map :data) fallback-state
-                  , 'Map
-                draft $ unsafe-coerce (&map:get state :draft) 'String
+                raw-state $ .unwrap-or (get states :data) nil
+                state $ if (nil? raw-state) fallback-state $ decode-map-as raw-state (:: 'Map 'Tag 'String)
+                draft $ .unwrap $ get state :draft
               [] (effect-focus)
                 div
                   {} $ :class-name $ str-spaced css/expand css/column
@@ -210,41 +216,48 @@
                       :style $ {} $ :padding "|4px 16px"
                     span $ {}
                     button $ {} (:class-name css/button) (:inner-text |Submit)
-                      :on-click $ fn (e d!) (d! :edit-slide draft) (d! cursor nil) (d! :router :slides)
+                      :on-click $ fn (e d!)
+                        d! $ app-schema/Op :edit-slide draft
+                        d! $ app-schema/Op :states cursor nil
+                        d! $ app-schema/Op :router :slides
                   textarea $ {}
                     :class-name $ str-spaced css/expand css/textarea css/font-code
                     :style $ {} (:font-size 24) (:margin "|8px 16px") (:padding "|16px 16px 160px 16px") (:line-height 1.6)
                       :border $ str "|1px solid " $ hsl 0 0 80
                     :value draft
                     :on-input $ fn (e d!)
-                      d! cursor $ assoc state :draft $ unsafe-coerce
-                        &map:get (unsafe-coerce e 'Map) :value
-                        , 'String
+                      d! $ app-schema/Op :states cursor $ assoc state :draft
+                        decode-map-as
+                          .unwrap $ get
+                            decode-map-as e $ :: 'Map 'Tag 'Dynamic
+                            , :value
+                          , 'String
                     :placeholder "|(empty page are going to be removed...)"
                     :on-keydown $ fn (e d!)
                       let
-                          event $ unsafe-coerce
-                            &map:get
-                              unsafe-coerce e $ :: 'Map 'Tag 'Dynamic
+                          event $ keyboard-event-host $ .unwrap
+                            get
+                              decode-map-as e $ :: 'Map 'Tag 'Dynamic
                               , :event
-                            , 'js-ffi.browser/KeyboardEventHost
                           meta? $ event :meta-key?
                           key $ event :key
                         when
-                          and meta? $ = |e key
-                          d! :edit-slide draft
-                          d! cursor &unit
-                          d! :router :slides
+                          and meta? $ or (= |e key) (= |E key)
+                          d! $ app-schema/Op :edit-slide draft
+                          d! $ app-schema/Op :states cursor nil
+                          d! $ app-schema/Op :router :slides
           :examples $ []
           :schema $ :: 'Fn $ {} (:return 'respo.schema/Component)
-            :args $ [] (:: 'Map 'Tag 'Dynamic) 'Dynamic
+            :args $ [] (:: 'Map 'Dynamic 'Dynamic) 'String
             :features $ #{} :js-ffi
         'effect-focus $ %{} 'CodeEntry (:doc |)
-          :code $ quote $ defeffect effect-focus () (action el *local at-place?)
-            case-default action &unit $ :mount $ let
-                maybe-target $ element-query-selector (unsafe-coerce el 'js-ffi.browser/DomElementHost) |textarea
-              when (option:some? maybe-target)
-                element-focus! $ option:unwrap maybe-target
+          :code $ quote $ defeffect effect-focus () (action el at-place?)
+            match action
+              :mount $ let
+                  maybe-target $ element-query-selector (unsafe-coerce el 'js-ffi.browser/DomElementHost) |textarea
+                when (option:some? maybe-target)
+                  element-focus! $ option:unwrap maybe-target
+              _ &unit
           :examples $ []
           :schema $ :: 'Fn $ {} (:return 'respo.schema/Effect)
             :args $ []
@@ -264,7 +277,8 @@
             feather.core :refer $ comp-i
             app.comp.slides :refer $ comp-slides
             app.comp.headlines :refer $ comp-headlines
-            js-ffi.browser :refer $ [] DomElementHost KeyboardEventHost element-query-selector element-focus!
+            js-ffi.browser :refer $ DomElementHost element-query-selector element-focus! keyboard-event-host
+            app.schema :as app-schema
     'app.comp.headlines $ %{} 'FileEntry
       :defs $ {}
         'comp-headlines $ %{} 'CodeEntry (:doc |)
@@ -289,7 +303,8 @@
                               str "|1px solid " $ hsl 200 80 60
                               , nil
                             :margin-bottom $ if selected? -1 nil
-                          :on-click $ fn (e d!) (d! :page idx)
+                          :on-click $ fn (e d!)
+                            d! $ app-schema/Op :page idx
                         div $ {} $ :style
                           {} $ :width $ * 20
                             dec $ pow 2 indent
@@ -347,6 +362,7 @@
             |escape-html :as escape-html
             app.util :refer $ grab-headline
             |md5 :default md5
+            app.schema :as app-schema
     'app.comp.slides $ %{} 'FileEntry
       :defs $ {}
         'DateHost $ %{} 'CodeEntry (:doc |)
@@ -386,13 +402,25 @@
                   {} (:font-size 18) (:line-height 1) (:cursor :pointer)
                     :color $ hsl 200 90 80
                   fn (e d!)
-                    synthesizeAzureSpeech (turn-readable content) (get-env |azure-key)
-                      fn () $ println |done
+                    match (get-env |azure-key)
+                      (:some key)
+                        do
+                          synthesizeAzureSpeech
+                            turn-readable $ decode-map-as content 'String
+                            , key $ fn () $ println |done
+                          , &unit
+                      (:none)
+                        do (eprintln "|Azure speech key is not configured.") &unit
+                    , &unit
                 =< 24 nil
                 comp-icon :maximize
                   {} (:font-size 18) (:line-height 1) (:cursor :pointer)
                     :color $ hsl 200 90 80
-                  fn (e d!) (js/document.body.requestFullscreen)
+                  fn (e d!)
+                    match (browser/document-body)
+                      (:some body) (browser/element-request-fullscreen! body)
+                      (:none) &unit
+                    , &unit
           :examples $ []
           :schema $ :: 'Fn $ {} (:return 'respo.schema/Component)
             :args $ [] 'String
@@ -410,19 +438,21 @@
                     , |: $ format-clock-part $ .get-minutes now
                 :style $ {} (:font-size 20) (:cursor :pointer)
                   :color $ hsl 200 70 80
-                :on-click $ fn (e d!) (d! :add-slide page)
+                :on-click $ fn (e d!)
+                  d! $ app-schema/Op :add-slide page
                 :title "|New page"
               =< 20 0
               span
                 {}
                   :style $ {} $ :cursor :pointer
-                  :on-click $ fn (e d!) (d! :page 0)
+                  :on-click $ fn (e d!)
+                    d! $ app-schema/Op :page 0
                 <> $ str page
               <> |/
               span $ {}
                 :style $ {} $ :cursor :pointer
                 :on-click $ fn (e d!)
-                  d! :page $ dec $ count slides
+                  d! $ app-schema/Op :page $ dec (count slides)
               <> $ str $ dec (count slides)
           :examples $ []
           :schema $ :: 'Fn $ {} (:return 'respo.schema/Component)
@@ -433,11 +463,9 @@
             let
                 next-page $ inc page
                 maybe-slide $ get slides next-page
-                maybe-first-line $ assert-type
-                  if (option:some? maybe-slide)
-                    grab-headline $ assert-type (option:unwrap maybe-slide) 'String
-                    , %none
-                  :: 'Option 'String
+                maybe-first-line $ if (option:some? maybe-slide)
+                  grab-headline $ option:unwrap maybe-slide
+                  Option :none
               div
                 {} $ :style $ merge
                   {} $ :position :absolute
@@ -457,11 +485,9 @@
         'comp-slides $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defcomp comp-slides (slides page)
             let
-                content $ unsafe-coerce
-                  option:unwrap-or
-                    get slides $ or page 0
-                    , |
-                  , 'String
+                content $ option:unwrap-or
+                  get slides $ or page 0
+                  , |
               div
                 {} (:class-name css/flex)
                   :style $ {}
@@ -475,13 +501,11 @@
                     :class-name $ str-spaced |slide-area style-md-area
                     :highlight $ fn (code lang)
                       let
-                          code-text $ unsafe-coerce code 'String
-                          lang-text $ unsafe-coerce lang 'String
-                          code-lang-option $ assert-type (get supported-langs lang-text) (:: 'Option 'String)
+                          code-text $ decode-map-as code 'String
+                          lang-text $ decode-map-as lang 'String
+                          code-lang-option $ get supported-langs lang-text
                         if-let (code-lang code-lang-option)
-                          unsafe-coerce
-                            .-value $ .highlight (unsafe-coerce hljs 'app.comp.slides/HljsHost) code-text $ js-object (:language code-lang)
-                            , 'String
+                          .-value $ .highlight (unsafe-coerce hljs 'app.comp.slides/HljsHost) code-text $ js-object (:language code-lang)
                           do (js/console.log |not-highlighting: lang-text code-lang-option) (escape-code code-text)
                 comp-pager page slides 16 8
                 comp-prompter page slides 16 48
@@ -492,7 +516,7 @@
             :features $ #{} :js-ffi
         'escape-code $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn escape-code (text)
-            unsafe-coerce (escape-html text) 'String
+            decode-map-as (escape-html text) 'String
           :examples $ []
           :schema $ :: 'Fn $ {} (:return 'String)
             :args $ [] 'String
@@ -507,10 +531,17 @@
             :args $ [] 'Number
         'reading-effect $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defeffect reading-effect (content) (action el at?)
-            if (= action :update)
-              synthesizeAzureSpeech (turn-readable content)
-                option:unwrap-or (get-env |azure-key) |
-                fn () $ println |done
+            when (= action :update)
+              match (get-env |azure-key)
+                (:some key)
+                  do
+                    synthesizeAzureSpeech
+                      turn-readable $ decode-map-as content 'String
+                      , key $ fn () $ println |done
+                    , &unit
+                (:none)
+                  do (eprintln "|Azure speech key is not configured.") &unit
+            , &unit
           :examples $ []
           :schema $ :: 'Fn $ {} (:return 'respo.schema/Effect)
             :args $ [] 'String
@@ -538,36 +569,34 @@
         'turn-readable $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn turn-readable (content)
             -> (split-block content)
-              filter $ fn (piece)
-                let
-                    piece-list $ unsafe-coerce piece 'List
-                    text-lines $ unsafe-coerce
-                      option:unwrap-or (last piece-list) ([])
-                      , 'List
-                    readable-text $ join-str text-lines |
-                  and
-                    = :text $ option:unwrap-or (first piece-list) :unknown
-                    not $ starts-with? readable-text |![]
-                    not $ starts-with? readable-text "|> "
-              map $ fn (piece)
-                -> (rest piece)
-                  map $ fn (xs)
-                    -> xs
-                      map $ fn (line)
-                        let
-                            s1 $ unsafe-coerce
-                              .!replace (unsafe-coerce line 'String) (new js/RegExp |^#+ |g) |
-                              , 'String
-                            s2 $ unsafe-coerce
-                              .!replace s1 (new js/RegExp |^\*) &newline
-                              , 'String
-                          unsafe-coerce
-                            .!replace s2 (new js/RegExp |https?://\S+ |g) "|见链接."
-                            , 'String
-                      join-str "| , "
-                  join-str &newline
-              join-str &newline
-              ; w-log
+              mapcat $ fn (piece)
+                if (enum? piece)
+                  match piece
+                    (:text raw-lines)
+                      let
+                          lines $ decode-map-as raw-lines $ :: 'List 'String
+                          joined $ join-string lines |
+                        if
+                          or (starts-with? joined |![]) (starts-with? joined "|> ")
+                          []
+                          [] lines
+                    _ $ []
+                  raise "|Expected Markdown block enum"
+              map $ fn (lines)
+                -> lines
+                  map $ fn (line)
+                    let
+                        s1 $ decode-map-as
+                          .!replace line (new js/RegExp |^#+ |g) |
+                          , 'String
+                        s2 $ decode-map-as
+                          .!replace s1 (new js/RegExp |^\*) &newline
+                          , 'String
+                      decode-map-as
+                        .!replace s2 (new js/RegExp |https?://\S+ |g) "|见链接."
+                        , 'String
+                  join-string "| , "
+              join-string &newline
           :examples $ []
           :schema $ :: 'Fn $ {} (:return 'String)
             :args $ [] 'String
@@ -591,6 +620,8 @@
             feather.core :refer $ comp-icon
             |../entry/play-audio.mjs :refer $ synthesizeAzureSpeech
             respo-md.util.core :refer $ split-block
+            app.schema :as app-schema
+            js-ffi.browser :as browser
     'app.config $ %{} 'FileEntry
       :defs $ {}
         'dev? $ %{} 'CodeEntry (:doc |)
@@ -617,10 +648,13 @@
     'app.main $ %{} 'FileEntry
       :defs $ {}
         '*reel $ %{} 'CodeEntry (:doc |)
-          :code $ quote $ defatom *reel
-            -> reel-schema/reel (assoc :base app.schema/store) (assoc :store app.schema/store)
+          :code $ quote $ defref *reel (typed/new-reel schema/store)
           :examples $ []
-          :schema $ :: 'Ref 'app.schema/Reel
+          :schema $ :: 'Ref $ :: 'reel.typed/State 'app.schema/Op 'app.schema/Store
+        '*storage-failed? $ %{} 'CodeEntry (:doc |)
+          :code $ quote $ defref *storage-failed? false
+          :examples $ []
+          :schema $ :: 'Ref 'Bool
         'HighlightHost $ %{} 'CodeEntry (:doc |)
           :code $ quote $ deftrait HighlightHost
             .register-language! $ :: 'Fn $ {}
@@ -638,45 +672,52 @@
             :writable $ #{} :scroll-top
           :schema $ :: 'Trait
         'dispatch! $ %{} 'CodeEntry (:doc |)
-          :code $ quote $ defn dispatch! (op)
-            let
-                op-name $ option:unwrap-or (nth op 0) :unknown
-              when
-                and config/dev? (not= op-name :states) (not= op-name :hydrate-storage)
-                println |Dispatch: op
-            reset! *reel $ reel-updater updater @*reel op
+          :code $ quote $ defn dispatch! (message)
+            if (enum? message)
+              do
+                when config/dev? $ println |Dispatch: message
+                reset! *reel $ match (typed/decode-control message)
+                  (:some control) (typed/apply-control updater @*reel control)
+                  (:none)
+                    typed/record-op updater @*reel (schema/decode-op message) (generate-id!) (shared/now-ms)
+              raise "|Expected Enum operation"
+            , &unit
           :examples $ []
           :schema $ :: 'Fn $ {} (:return 'Unit)
-            :args $ [] 'Enum
+            :args $ [] 'Dynamic
+            :features $ #{} :js-ffi
         'handle-direction! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn handle-direction! (event)
             let
-                keyboard $ unsafe-coerce event 'js-ffi.browser/KeyboardEventHost
-                reel-map $ unsafe-coerce @*reel 'app.schema/Reel
-                store $ decode-map-as (&map:get reel-map :store) app.schema/Store
+                keyboard $ keyboard-event-host event
+                store $ @*reel :store
                 router store.:router
                 key $ keyboard :key
                 meta? $ keyboard :meta-key?
                 shift? $ keyboard :shift-key?
               when (= :slides router)
-                case-default key &unit
+                match key
                   |ArrowRight $ do
-                    dispatch! $ :: :slide-down
+                    dispatch! $ schema/Op :slide-down
                     scroll-top!
                   |ArrowLeft $ do
-                    dispatch! $ :: :slide-up
+                    dispatch! $ schema/Op :slide-up
                     scroll-top!
+                  _ &unit
               when
-                and (= |e key) meta?
-                case-default router (println |TODO)
+                and
+                  or (= |e key) (= |E key)
+                  , meta?
+                match router
                   :edit-slide $ println |do...
                   :slides $ if shift?
-                    dispatch! $ :: :router :home
-                    dispatch! $ :: :router :edit-slide
-                  :headlines $ dispatch! $ :: :router :slides
+                    dispatch! $ schema/Op :router :home
+                    dispatch! $ schema/Op :router :edit-slide
+                  :headlines $ dispatch! $ schema/Op :router :slides
+                  _ $ println |TODO
               when
                 and (= |i key) meta?
-                dispatch! $ :: :router :headlines
+                dispatch! $ schema/Op :router :headlines
               , &unit
           :examples $ []
           :schema $ :: 'Fn $ {} (:return 'Unit)
@@ -684,7 +725,6 @@
             :features $ #{} :js-ffi
         'load-content! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn load-content! (url)
-            hint-fn $ {} $ :async true
             match
               js-await $ fetch-response url
               (:ok response)
@@ -693,8 +733,8 @@
                     js-await $ response-text response
                     (:ok file)
                       do
-                        dispatch! $ :: :render-slides $ split-regex file pattern-divider
-                        dispatch! $ :: :router :slides
+                        dispatch! $ schema/Op :render-slides $ split-regex file pattern-divider
+                        dispatch! $ schema/Op :router :slides
                         , &unit
                     (:err error)
                       do (eprintln |failed-to-read-slide-response: error) &unit
@@ -704,50 +744,48 @@
               (:err error)
                 do (eprintln |failed-to-fetch-slides: error) &unit
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'Unit)
+          :schema $ :: 'Fn $ {} (:async true) (:return 'Unit)
             :args $ [] 'String
             :features $ #{} :js-ffi
         'main! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn main! ()
-            hint-fn $ {} $ :async true
             println "|Running mode:" $ if config/dev?
               do (load-console-formatter!) |dev
               , |release
-            ; reset! *changes-logger $ fn (& args) (js/console.log & args)
             register-language! |clojure clojure-lang
             register-language! |bash bash-lang
             register-language! |javascript javascript-lang
             register-language! |ts typescript-lang
             register-language! |json json-lang
             render-app!
-            add-watch *reel :changes $ fn (r p) (render-app!)
+            add-watch! *reel :changes $ fn (r p) (render-app!)
             listen-devtools! |a dispatch!
             add-event-listener! |beforeunload $ fn (_event) (persist-storage!)
             repeat! 60 persist-storage!
-            let
-                storage-key $ str $ &map:get config/site :storage-key
-                maybe-raw $ storage-get storage-key
-              when (option:some? maybe-raw)
-                dispatch! $ :: :hydrate-storage $ parse-cirru-edn (option:unwrap maybe-raw)
+            match
+              storage-get $ .unwrap $ get config/site :storage-key
+              (:none) &unit
+              (:some raw) (restore-storage! raw)
             add-event-listener! |keydown handle-direction!
             when (option:some? config/initial-content)
               js-await $ load-content! $ option:unwrap config/initial-content
             println "|App started."
+            , &unit
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'Unit)
+          :schema $ :: 'Fn $ {} (:async true) (:return 'Unit)
             :args $ []
             :features $ #{} :js-ffi
         'mount-target $ %{} 'CodeEntry (:doc |)
           :code $ quote $ def mount-target
-            option:unwrap $ query-selector |.app
+            narrow-element $ option:unwrap $ query-selector |.app
           :examples $ []
-          :schema $ :: 'js-ffi.browser/DomElementHost
+          :schema $ :: 'respo.dom/DomElement
         'persist-storage! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn persist-storage! ()
-            let
-                storage-key $ str $ &map:get config/site :storage-key
-                reel-map $ unsafe-coerce @*reel $ :: 'Map 'Tag 'Dynamic
-              storage-set! storage-key $ format-cirru-edn $ &map:get reel-map :store
+            when-not @*storage-failed? $ storage-set!
+              .unwrap $ get config/site :storage-key
+              format-cirru-edn $ @*reel :store
+            , &unit
           :examples $ []
           :schema $ :: 'Fn $ {} (:return 'Unit)
             :args $ []
@@ -763,11 +801,12 @@
         'reload! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn reload! ()
             if (nil? build-errors)
-              do (remove-watch *reel :changes) (clear-cache!)
-                add-watch *reel :changes $ fn (reel prev) (render-app!)
-                reset! *reel $ unsafe-coerce (refresh-reel @*reel app.schema/store updater) 'app.schema/Reel
+              do (remove-watch! *reel :changes) (clear-cache!)
+                add-watch! *reel :changes $ fn (reel prev) (render-app!)
+                reset! *reel $ typed/refresh updater @*reel schema/store
                 hud! |ok~ |Ok
               hud! |error build-errors
+            , &unit
           :examples $ []
           :schema $ :: 'Fn $ {} (:return 'Unit)
             :args $ []
@@ -789,6 +828,20 @@
             :args $ [] 'Number $ :: 'Fn
               {} (:return 'Unit)
                 :args $ []
+        'restore-storage! $ %{} 'CodeEntry (:doc |)
+          :code $ quote $ defn restore-storage! (raw)
+            try
+              let
+                  store $ schema/decode-store $ parse-cirru-edn raw
+                reset! *reel $ typed/record-op updater @*reel (schema/Op :hydrate-storage store) (generate-id!) (shared/now-ms)
+                reset! *storage-failed? false
+                , &unit
+              fn (message) (reset! *storage-failed? true) (hud! |error "|存档加载失败，已暂停自动保存以保留原数据。") &unit
+            , &unit
+          :examples $ []
+          :schema $ :: 'Fn $ {} (:return 'Unit)
+            :args $ [] 'String
+            :features $ #{} :js-ffi
         'scroll-top! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn scroll-top! ()
             let
@@ -813,8 +866,6 @@
             respo.core :refer $ render! clear-cache! realize-ssr! *changes-logger
             app.updater :refer $ updater
             reel.util :refer $ listen-devtools!
-            reel.core :refer $ reel-updater refresh-reel
-            reel.schema :as reel-schema
             app.config :as config
             |highlight.js :default hljs
             |highlight.js/lib/languages/clojure :default clojure-lang
@@ -824,30 +875,71 @@
             |highlight.js/lib/languages/json :default json-lang
             |./calcit.build-errors :default build-errors
             |bottom-tip :default hud!
-            js-ffi.browser :refer $ [] add-event-listener! storage-get storage-set! query-selector set-timeout! KeyboardEventHost
-            js-ffi.shared :refer $ [] fetch-response response-text
-            app.comp.container :refer $ [] comp-container pattern-divider split-regex
+            js-ffi.browser :refer $ add-event-listener! storage-get storage-set! query-selector set-timeout! keyboard-event-host
+            js-ffi.shared :refer $ fetch-response response-text
+            app.comp.container :refer $ comp-container pattern-divider split-regex
+            reel.typed :as typed
+            js-ffi.shared :as shared
+            app.schema :as schema
+            respo.ffi.browser :refer $ narrow-element
     'app.schema $ %{} 'FileEntry
       :defs $ {}
-        'Reel $ %{} 'CodeEntry (:doc |)
-          :code $ quote $ def Reel &unit
+        'Op $ %{} 'CodeEntry (:doc |)
+          :code $ quote $ defenum Op
+            :states (:: 'List 'Dynamic) 'Dynamic
+            :router 'Tag
+            :render-slides $ :: 'List 'String
+            :slide-up
+            :page 'Number
+            :slide-down
+            :hydrate-storage 'app.schema/Store
+            :edit-slide 'String
+            :add-slide 'Number
           :examples $ []
-          :schema $ :: 'Map 'Tag 'Dynamic
+          :schema $ :: 'EnumDef
         'Store $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defstruct Store
-            :states $ :: 'Map 'Tag 'Dynamic
+            :states $ :: 'Map 'Dynamic 'Dynamic
             :router 'Tag
             :slides $ :: 'List 'String
             :page 'Number
           :examples $ []
           :schema $ :: 'StructDef
+        'decode-op $ %{} 'CodeEntry (:doc |)
+          :code $ quote $ defn decode-op (message)
+            match message
+              (:states v0 v1)
+                Op :states
+                  decode-map-as v0 $ :: 'List 'Dynamic
+                  , v1
+              (:router v0)
+                Op :router $ decode-map-as v0 'Tag
+              (:render-slides v0)
+                Op :render-slides $ decode-map-as v0 $ :: 'List 'String
+              (:slide-up) (Op :slide-up)
+              (:page v0)
+                Op :page $ decode-map-as v0 'Number
+              (:slide-down) (Op :slide-down)
+              (:hydrate-storage v0)
+                Op :hydrate-storage $ decode-store v0
+              (:edit-slide v0)
+                Op :edit-slide $ decode-map-as v0 'String
+              (:add-slide v0)
+                Op :add-slide $ decode-map-as v0 'Number
+          :examples $ []
+          :schema $ :: 'Fn $ {} (:return 'app.schema/Op)
+            :args $ [] 'Enum
+        'decode-store $ %{} 'CodeEntry (:doc |)
+          :code $ quote $ defn decode-store (value)
+            decode-map-as
+              if (struct? value) (&struct:to-map value) value
+              , 'app.schema/Store
+          :examples $ []
+          :schema $ :: 'Fn $ {} (:return 'app.schema/Store)
+            :args $ [] 'Dynamic
         'store $ %{} 'CodeEntry (:doc |)
           :code $ quote $ def store
-            {}
-              :states $ {}
-              :router :home
-              :slides $ []
-              :page 0
+            Store :states ({}) :router :home :slides ([]) :page 0
           :examples $ []
           :schema $ :: 'app.schema/Store
       :ns $ %{} 'NsEntry (:doc |)
@@ -861,26 +953,26 @@
                 slides store.:slides
               match op
                 (:states cursor state-data)
-                  decode-map-as (update-states store cursor state-data) app.schema/Store
-                (:router router)
-                  assoc store :router $ assert-type router 'Tag
+                  assoc store :states $ decode-map-as
+                    assoc-in (store :states) (conj cursor :data) state-data
+                    :: 'Map 'Dynamic 'Dynamic
+                (:router router) (assoc store :router router)
                 (:render-slides data)
                   let
-                      next-slides $ assert-type data $ :: 'List 'String
+                      next-slides data
                     -> store (assoc :slides next-slides) (assoc :router :slides)
                 (:slide-up)
                   assoc store :page $ if (> page 0) (dec page) page
-                (:page next-page)
-                  assoc store :page $ assert-type next-page 'Number
+                (:page next-page) (assoc store :page next-page)
                 (:slide-down)
                   assoc store :page $ if
                     < (inc page) (count slides)
                     inc page
                     , page
-                (:hydrate-storage data) (decode-map-as data app.schema/Store)
+                (:hydrate-storage data) data
                 (:edit-slide data)
                   let
-                      text $ assert-type data 'String
+                      text data
                     if
                       and (blank? text)
                         < (inc page) (count slides)
@@ -888,7 +980,7 @@
                       assoc store :slides $ assoc slides page text
                 (:add-slide data)
                   let
-                      after-page $ assert-type data 'Number
+                      after-page data
                     -> store
                       assoc :slides $ concat
                         slice slides 0 $ inc after-page
@@ -896,14 +988,12 @@
                         slice slides (inc after-page) (count slides)
                       assoc :page $ inc after-page
                       assoc :router :edit-slide
-                _ $ do (eprintln |unknown-op: op) store
           :examples $ []
           :schema $ :: 'Fn $ {} (:return 'app.schema/Store)
-            :args $ [] 'app.schema/Store 'Enum 'String 'Number
+            :args $ [] 'app.schema/Store 'app.schema/Op 'String 'Number
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote $ ns app.updater
           :require
-            respo.cursor :refer $ update-states
             app.config :refer $ dev?
             app.schema :as app-schema
     'app.util $ %{} 'FileEntry
@@ -921,4 +1011,4 @@
             :features $ #{} :js-ffi
             :return $ :: 'Option 'String
       :ns $ %{} 'NsEntry (:doc |)
-        :code $ quote $ ns app.util (:require)
+        :code $ quote $ ns app.util

@@ -1,8 +1,8 @@
 
 // import * as sdk from "microsoft-cognitiveservices-speech-sdk";
 import * as bundle from "microsoft-cognitiveservices-speech-sdk/distrib/lib/microsoft.cognitiveservices.speech.sdk";
+import escapeHtml from "escape-html";
 
-console.log("SpeechSDK", bundle);
 let SpeechSDK = bundle
 
 export function synthesizeAzureSpeech(text, key, cb) {
@@ -54,7 +54,7 @@ let makeSsml = (text) => {
     return `<speak version="1.0" xmlns="http://www.w3.org/2001/10/synthesis" xml:lang="zh-CN">
     <voice name="zh-CN-YunyangNeural">
         <prosody rate="+10.00%">
-            ${text}
+            ${escapeHtml(text)}
         </prosody>
     </voice>
 </speak>`

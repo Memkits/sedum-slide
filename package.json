@@ -1,12 +1,12 @@
 {
   "packageManager": "yarn@4.18.0",
-  "name": "calcit-workflow",
+  "name": "sedum-slide",
   "version": "0.1.4",
-  "description": "ClojureScript workflow using Calcit Editor",
+  "description": "A small Markdown slide tool built with Calcit",
   "main": "index.js",
   "repository": {
     "type": "git",
-    "url": "git@github.com:mvc-works/calcit-workflow.git"
+    "url": "git@github.com:Memkits/sedum-slide.git"
   },
   "author": "jiyinyiyong",
   "license": "MIT",
@@ -15,7 +15,7 @@
     "vite": "8.3.1"
   },
   "dependencies": {
-    "@calcit/procs": "0.27.0",
+    "@calcit/procs": "0.30.1-alpha.4",
     "cirru-color": "^0.2.4",
     "copy-text-to-clipboard": "^3.2.1",
     "dayjs": "^1.11.21",
