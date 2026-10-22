@@ -485,9 +485,7 @@
         'comp-slides $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defcomp comp-slides (slides page)
             let
-                content $ option:unwrap-or
-                  get slides $ or page 0
-                  , |
+                content $ option:unwrap-or (get slides page) |
               div
                 {} (:class-name css/flex)
                   :style $ {}
@@ -684,7 +682,7 @@
             , &unit
           :examples $ []
           :schema $ :: 'Fn $ {} (:return 'Unit)
-            :args $ [] 'Dynamic
+            :args $ [] 'Enum
             :features $ #{} :js-ffi
         'handle-direction! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn handle-direction! (event)
@@ -895,6 +893,13 @@
             :hydrate-storage 'app.schema/Store
             :edit-slide 'String
             :add-slide 'Number
+            :reel/toggle
+            :reel/recall 'Number
+            :reel/run
+            :reel/step
+            :reel/merge
+            :reel/reset
+            :reel/remove 'Number
           :examples $ []
           :schema $ :: 'EnumDef
         'Store $ %{} 'CodeEntry (:doc |)
@@ -983,11 +988,12 @@
                       after-page data
                     -> store
                       assoc :slides $ concat
-                        slice slides 0 $ inc after-page
+                        slice slides 0 $ :: :some $ inc after-page
                         [] "|(New page)"
-                        slice slides (inc after-page) (count slides)
+                        slice slides (inc after-page) (:: :none)
                       assoc :page $ inc after-page
                       assoc :router :edit-slide
+                _ $ do (println |Unknown-op: op) store
           :examples $ []
           :schema $ :: 'Fn $ {} (:return 'app.schema/Store)
             :args $ [] 'app.schema/Store 'app.schema/Op 'String 'Number
