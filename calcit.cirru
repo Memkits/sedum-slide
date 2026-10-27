@@ -125,8 +125,8 @@
             when (= :mount action)
               let
                   maybe-target $ element-query-selector (unsafe-coerce el 'js-ffi.browser/DomElementHost) |textarea
-                when (option:some? maybe-target)
-                  element-focus! $ option:unwrap maybe-target
+                when (.some? maybe-target)
+                  element-focus! $ .unwrap maybe-target
           :examples $ []
           :schema $ :: 'Fn $ {} (:return 'respo.schema/Effect)
             :args $ []
@@ -255,8 +255,8 @@
             match action
               :mount $ let
                   maybe-target $ element-query-selector (unsafe-coerce el 'js-ffi.browser/DomElementHost) |textarea
-                when (option:some? maybe-target)
-                  element-focus! $ option:unwrap maybe-target
+                when (.some? maybe-target)
+                  element-focus! $ .unwrap maybe-target
               _ &unit
           :examples $ []
           :schema $ :: 'Fn $ {} (:return 'respo.schema/Effect)
@@ -293,7 +293,7 @@
                   [] (md5 slide)
                     let
                         headline $ grab-headline slide
-                        indent $ get-indent $ option:unwrap-or headline |
+                        indent $ get-indent $ .unwrap-or headline |
                         selected? $ = page idx
                       div
                         {} (:class-name css/row-middle)
@@ -315,8 +315,8 @@
                             {} $ :color :blue
                             {}
                         =< 16 nil
-                        if (option:some? headline)
-                          comp-md-block (option:unwrap headline) ({})
+                        if (.some? headline)
+                          comp-md-block (.unwrap headline) ({})
                           span $ {} (:inner-text |undefined)
                             :style $ {} $ :color :red
           :examples $ []
@@ -465,19 +465,19 @@
             let
                 next-page $ inc page
                 maybe-slide $ get slides next-page
-                maybe-first-line $ if (option:some? maybe-slide)
-                  grab-headline $ option:unwrap maybe-slide
+                maybe-first-line $ if (.some? maybe-slide)
+                  grab-headline $ .unwrap maybe-slide
                   Option :none
               div
                 {} $ :style $ merge
                   {} $ :position :absolute
                   {} (:position :absolute) (:right right) (:bottom bottom)
-                if (option:some? maybe-first-line)
+                if (.some? maybe-first-line)
                   span
                     {} $ :style $ {}
                       :color $ hsl 0 0 70
                       :font-size 24
-                    comp-md (option:unwrap maybe-first-line) ({})
+                    comp-md (.unwrap maybe-first-line) ({})
                   <> "|No preview" $ {}
                     :color $ hsl 0 0 90
                     :font-style :italic
@@ -487,7 +487,7 @@
         'comp-slides $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defcomp comp-slides (slides page)
             let
-                content $ option:unwrap-or (get slides page) |
+                content $ .unwrap-or (get slides page) |
               div
                 {} (:class-name css/flex)
                   :style $ {}
@@ -626,7 +626,7 @@
       :defs $ {}
         'dev? $ %{} 'CodeEntry (:doc |)
           :code $ quote $ def dev?
-            = |dev $ option:unwrap-or (get-env |mode) |release
+            = |dev $ .unwrap-or (get-env |mode) |release
           :examples $ []
           :schema $ :: 'Bool
         'initial-content $ %{} 'CodeEntry (:doc |)
@@ -635,7 +635,7 @@
           :schema $ :: 'Option 'String
         'readable? $ %{} 'CodeEntry (:doc |)
           :code $ quote $ def readable?
-            = |on $ option:unwrap-or (get-env |readable) |
+            = |on $ .unwrap-or (get-env |readable) |
           :examples $ []
           :schema $ :: 'Bool
         'site $ %{} 'CodeEntry (:doc |)
@@ -767,8 +767,8 @@
               (:none) &unit
               (:some raw) (restore-storage! raw)
             add-event-listener! |keydown handle-direction!
-            when (option:some? config/initial-content)
-              js-await $ load-content! $ option:unwrap config/initial-content
+            when (.some? config/initial-content)
+              js-await $ load-content! $ .unwrap config/initial-content
             println "|App started."
             , &unit
           :examples $ []
@@ -777,7 +777,7 @@
             :features $ #{} :js-ffi
         'mount-target $ %{} 'CodeEntry (:doc |)
           :code $ quote $ def mount-target
-            narrow-element $ option:unwrap $ query-selector |.app
+            narrow-element $ .unwrap $ query-selector |.app
           :examples $ []
           :schema $ :: 'respo.dom/DomElement
         'persist-storage! $ %{} 'CodeEntry (:doc |)
@@ -846,9 +846,9 @@
           :code $ quote $ defn scroll-top! ()
             let
                 maybe-target $ query-selector |.slide-area
-              when (option:some? maybe-target)
+              when (.some? maybe-target)
                 js-set
-                  unsafe-coerce (option:unwrap maybe-target) 'app.main/SlideAreaHost
+                  unsafe-coerce (.unwrap maybe-target) 'app.main/SlideAreaHost
                   , :scroll-top 0
             , &unit
           :examples $ []
@@ -857,7 +857,7 @@
             :features $ #{} :js-ffi
         'ssr? $ %{} 'CodeEntry (:doc |)
           :code $ quote $ def ssr?
-            option:some? $ query-selector |meta.respo-ssr
+            .some? $ query-selector |meta.respo-ssr
           :examples $ []
           :schema $ :: 'Bool
       :ns $ %{} 'NsEntry (:doc |)
