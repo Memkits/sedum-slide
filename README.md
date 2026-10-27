@@ -1,5 +1,7 @@
 ## Sedum Slide
 
+当前 CLI / `@calcit/procs` 配对已发布的 `0.31.0-alpha.7`，Feather 同步到已发布 `0.5.0-alpha.2`。标题选中样式显式传入与旧 nil 清除相同的空 CSS 字符串，负边距使用等价 `-1px`；不改变选中逻辑、存档或语音调用。
+
 Demo http://r.tiye.me/Memkits/sedum-slide/
 
 A small slide tool to be less disturbing.

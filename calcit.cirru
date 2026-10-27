@@ -301,8 +301,8 @@
                             :opacity $ - 1 $ * 0.2 (pow indent 1.4)
                             :border-bottom $ if selected?
                               str "|1px solid " $ hsl 200 80 60
-                              , nil
-                            :margin-bottom $ if selected? -1 nil
+                              , |
+                            :margin-bottom $ if selected? |-1px |
                           :on-click $ fn (e d!)
                             d! $ app-schema/Op :page idx
                         div $ {} $ :style
@@ -311,7 +311,9 @@
                         span $ {}
                           :class-name $ str-spaced css/font-code style-head-text
                           :inner-text $ inc idx
-                          :style $ if selected? $ {} (:color :blue)
+                          :style $ if selected?
+                            {} $ :color :blue
+                            {}
                         =< 16 nil
                         if (option:some? headline)
                           comp-md-block (option:unwrap headline) ({})
