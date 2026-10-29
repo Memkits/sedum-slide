@@ -14,16 +14,14 @@
           :code $ quote $ deftrait RegexHost
           :examples $ []
           :ffi $ {} (:backend :js) (:kind :external-object) (:target :browser)
-          :schema $ :: 'Trait
+          :schema $ quote Trait
         'StringHost $ %{} 'CodeEntry (:doc |)
           :code $ quote $ deftrait StringHost
-            .split-regex $ :: 'Fn $ {}
-              :args $ [] 'app.comp.container/StringHost 'app.comp.container/RegexHost
-              :return 'JsObject
+            .split-regex $ quote $ Fn app.comp.container/StringHost app.comp.container/RegexHost (-> JsObject)
           :examples $ []
           :ffi $ {} (:backend :js) (:kind :external-object) (:target :browser)
             :names $ {} $ :split-regex |split
-          :schema $ :: 'Trait
+          :schema $ quote Trait
         'comp-container $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defcomp comp-container (reel)
             let
@@ -47,8 +45,7 @@
                 when dev? $ comp-reel (>> states :reel) (reel-view/view-data reel) ({})
                 when dev? $ comp-inspect |Store store $ {} (:bottom 0) (:left 100)
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'respo.schema/Component)
-            :args $ [] $ :: 'reel.typed/State 'app.schema/Op 'app.schema/Store
+          :schema $ quote $ Fn (reel.typed/State app.schema/Op app.schema/Store) (-> respo.schema/Component)
         'comp-draft $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defcomp comp-draft (states slides)
             let
@@ -106,9 +103,7 @@
                             d! $ app-schema/Op :render-slides $ split-regex content pattern-divider
                             d! $ app-schema/Op :states cursor nil
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'respo.schema/Component)
-            :args $ [] (:: 'Map 'Dynamic 'Dynamic) (:: 'List 'String)
-            :features $ #{} :js-ffi
+          :schema $ quote $ Fn (Map Dynamic Dynamic) (List String) (-> respo.schema/Component) (:features :js-ffi)
         'comp-sidebar $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defcomp comp-sidebar (router)
             div
@@ -118,8 +113,7 @@
               render-entry :home :code router
               render-entry :edit-slide :edit-2 router
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'respo.schema/Component)
-            :args $ [] 'Tag
+          :schema $ quote $ Fn Tag (-> respo.schema/Component)
         'effect-focus $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defeffect effect-focus () (action el at-place?)
             when (= :mount action)
@@ -128,20 +122,16 @@
                 when (.some? maybe-target)
                   element-focus! $ .unwrap maybe-target
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'respo.schema/Effect)
-            :args $ []
-            :features $ #{} :js-ffi
+          :schema $ quote $ Fn (-> respo.schema/Effect) (:features :js-ffi)
         'make-regex $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn make-regex (pattern)
             unsafe-coerce (new js/RegExp pattern) 'app.comp.container/RegexHost
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'app.comp.container/RegexHost)
-            :args $ [] 'String
-            :features $ #{} :js-ffi
+          :schema $ quote $ Fn String (-> app.comp.container/RegexHost) (:features :js-ffi)
         'pattern-divider $ %{} 'CodeEntry (:doc |)
           :code $ quote $ def pattern-divider (make-regex |\n-{3,}\n)
           :examples $ []
-          :schema $ :: 'app.comp.container/RegexHost
+          :schema $ quote app.comp.container/RegexHost
         'render-entry $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn render-entry (router-name icon current-page)
             span
@@ -151,8 +141,7 @@
                   d! $ app-schema/Op :router router-name
               comp-i icon 18 $ if (= current-page router-name) |black |#ccc
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'respo.schema/Element)
-            :args $ [] 'Tag 'Tag 'Tag
+          :schema $ quote $ Fn Tag Tag Tag (-> respo.schema/Element)
         'split-regex $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn split-regex (text pattern)
             decode-map-as
@@ -161,10 +150,9 @@
                 to-calcit-data true
               :: 'List 'String
           :examples $ []
-          :schema $ :: 'Fn $ {}
-            :args $ [] 'String 'app.comp.container/RegexHost
-            :features $ #{} :js-ffi
-            :return $ :: 'List 'String
+          :schema $ quote $ Fn String app.comp.container/RegexHost
+            -> $ List String
+            :features :js-ffi
         'style-sidebar $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defstyle style-sidebar
             {} $ |& $ {} (:min-width 48)
@@ -174,7 +162,7 @@
               :flex-shrink 0
               :font-size 24
           :examples $ []
-          :schema $ :: 'String
+          :schema $ quote String
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote $ ns app.comp.container
           :require
@@ -247,9 +235,7 @@
                           d! $ app-schema/Op :states cursor nil
                           d! $ app-schema/Op :router :slides
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'respo.schema/Component)
-            :args $ [] (:: 'Map 'Dynamic 'Dynamic) 'String
-            :features $ #{} :js-ffi
+          :schema $ quote $ Fn (Map Dynamic Dynamic) String (-> respo.schema/Component) (:features :js-ffi)
         'effect-focus $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defeffect effect-focus () (action el at-place?)
             match action
@@ -259,9 +245,7 @@
                   element-focus! $ .unwrap maybe-target
               _ &unit
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'respo.schema/Effect)
-            :args $ []
-            :features $ #{} :js-ffi
+          :schema $ quote $ Fn (-> respo.schema/Effect) (:features :js-ffi)
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote $ ns app.comp.edit-slide
           :require
@@ -320,24 +304,21 @@
                           span $ {} (:inner-text |undefined)
                             :style $ {} $ :color :red
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'respo.schema/Component)
-            :args $ [] (:: 'List 'String) 'Number
+          :schema $ quote $ Fn (List String) Number (-> respo.schema/Component)
         'count-leading-hashes $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn count-leading-hashes (text acc)
             if (starts-with? text |#)
               count-leading-hashes (strip-prefix text |#) (inc acc)
               , acc
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'Number)
-            :args $ [] 'String 'Number
+          :schema $ quote $ Fn String Number (-> Number)
         'get-indent $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn get-indent (text)
             let
                 depth $ count-leading-hashes text 0
               if (> depth 0) (dec depth) 0
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'Number)
-            :args $ [] 'String
+          :schema $ quote $ Fn String (-> Number)
         'style-head-text $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defstyle style-head-text
             {} $ |& $ {}
@@ -346,7 +327,7 @@
               :min-width 40
               :text-align :right
           :examples $ []
-          :schema $ :: 'String
+          :schema $ quote String
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote $ ns app.comp.headlines
           :require
@@ -369,29 +350,23 @@
       :defs $ {}
         'DateHost $ %{} 'CodeEntry (:doc |)
           :code $ quote $ deftrait DateHost
-            .get-hours $ :: 'Fn $ {}
-              :args $ [] 'app.comp.slides/DateHost
-              :return 'Number
-            .get-minutes $ :: 'Fn $ {}
-              :args $ [] 'app.comp.slides/DateHost
-              :return 'Number
+            .get-hours $ quote $ Fn app.comp.slides/DateHost (-> Number)
+            .get-minutes $ quote $ Fn app.comp.slides/DateHost (-> Number)
           :examples $ []
           :ffi $ {} (:backend :js) (:kind :external-object) (:target :browser)
             :names $ {} (:get-hours |getHours) (:get-minutes |getMinutes)
-          :schema $ :: 'Trait
+          :schema $ quote Trait
         'HighlightResultHost $ %{} 'CodeEntry (:doc |)
           :code $ quote $ deftrait HighlightResultHost (:value 'String)
           :examples $ []
           :ffi $ {} (:backend :js) (:kind :external-object) (:target :browser)
-          :schema $ :: 'Trait
+          :schema $ quote Trait
         'HljsHost $ %{} 'CodeEntry (:doc |)
           :code $ quote $ deftrait HljsHost
-            .highlight $ :: 'Fn $ {}
-              :args $ [] 'app.comp.slides/HljsHost 'String 'JsObject
-              :return 'app.comp.slides/HighlightResultHost
+            .highlight $ quote $ Fn app.comp.slides/HljsHost String JsObject (-> app.comp.slides/HighlightResultHost)
           :examples $ []
           :ffi $ {} (:backend :js) (:kind :external-object) (:target :browser)
-          :schema $ :: 'Trait
+          :schema $ quote Trait
         'comp-control $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defcomp comp-control (content)
             [] (reading-effect content)
@@ -424,9 +399,7 @@
                       (:none) &unit
                     , &unit
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'respo.schema/Component)
-            :args $ [] 'String
-            :features $ #{} :js-ffi
+          :schema $ quote $ Fn String (-> respo.schema/Component) (:features :js-ffi)
         'comp-pager $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defcomp comp-pager (page slides right bottom)
             div
@@ -457,9 +430,7 @@
                   d! $ app-schema/Op :page $ dec (count slides)
               <> $ str $ dec (count slides)
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'respo.schema/Component)
-            :args $ [] 'Number (:: 'List 'String) 'Number 'Number
-            :features $ #{} :js-ffi
+          :schema $ quote $ Fn Number (List String) Number Number (-> respo.schema/Component) (:features :js-ffi)
         'comp-prompter $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defcomp comp-prompter (page slides right bottom)
             let
@@ -482,8 +453,7 @@
                     :color $ hsl 0 0 90
                     :font-style :italic
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'respo.schema/Component)
-            :args $ [] 'Number (:: 'List 'String) 'Number 'Number
+          :schema $ quote $ Fn Number (List String) Number Number (-> respo.schema/Component)
         'comp-slides $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defcomp comp-slides (slides page)
             let
@@ -511,24 +481,19 @@
                 comp-prompter page slides 16 48
                 if readable? $ comp-control content
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'respo.schema/Component)
-            :args $ [] (:: 'List 'String) 'Number
-            :features $ #{} :js-ffi
+          :schema $ quote $ Fn (List String) Number (-> respo.schema/Component) (:features :js-ffi)
         'escape-code $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn escape-code (text)
             decode-map-as (escape-html text) 'String
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'String)
-            :args $ [] 'String
-            :features $ #{} :js-ffi
+          :schema $ quote $ Fn String (-> String) (:features :js-ffi)
         'format-clock-part $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn format-clock-part (n)
             let
                 text $ str n
               if (< n 10) (str |0 text) text
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'String)
-            :args $ [] 'Number
+          :schema $ quote $ Fn Number (-> String)
         'reading-effect $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defeffect reading-effect (content) (action el at?)
             when (= action :update)
@@ -543,9 +508,7 @@
                   do (eprintln "|Azure speech key is not configured.") &unit
             , &unit
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'respo.schema/Effect)
-            :args $ [] 'String
-            :features $ #{} :js-ffi
+          :schema $ quote $ Fn String (-> respo.schema/Effect) (:features :js-ffi)
         'style-md-area $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defstyle style-md-area
             {}
@@ -554,18 +517,18 @@
                 :padding-bottom 160
               "|& code" $ {} $ :font-size |inherit
           :examples $ []
-          :schema $ :: 'String
+          :schema $ quote String
         'style-pager $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defstyle style-pager
             {} $ |& $ {} (:position :absolute) (:font-family ui/font-code) (:font-size 24)
               :color $ hsl 0 0 1 $ Option :some 0.6
           :examples $ []
-          :schema $ :: 'String
+          :schema $ quote String
         'supported-langs $ %{} 'CodeEntry (:doc |)
           :code $ quote $ def supported-langs
             {} (|clojure |clojure) (|bash |bash) (|clj |clojure) (|javascript |javascript) (|js |javascript) (|ts |typescript) (|json |json)
           :examples $ []
-          :schema $ :: 'Map 'String 'String
+          :schema $ quote $ Map String String
         'turn-readable $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn turn-readable (content)
             -> (split-block content)
@@ -598,9 +561,7 @@
                   join-string "| , "
               join-string &newline
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'String)
-            :args $ [] 'String
-            :features $ #{} :js-ffi
+          :schema $ quote $ Fn String (-> String) (:features :js-ffi)
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote $ ns app.comp.slides
           :require
@@ -628,21 +589,21 @@
           :code $ quote $ def dev?
             = |dev $ .unwrap-or (get-env |mode) |release
           :examples $ []
-          :schema $ :: 'Bool
+          :schema $ quote Bool
         'initial-content $ %{} 'CodeEntry (:doc |)
           :code $ quote $ def initial-content (get-env |content)
           :examples $ []
-          :schema $ :: 'Option 'String
+          :schema $ quote $ Option String
         'readable? $ %{} 'CodeEntry (:doc |)
           :code $ quote $ def readable?
             = |on $ .unwrap-or (get-env |readable) |
           :examples $ []
-          :schema $ :: 'Bool
+          :schema $ quote Bool
         'site $ %{} 'CodeEntry (:doc |)
           :code $ quote $ def site
             {} (:title "|Sedum Slide") (:icon |http://cdn.tiye.me/logo/sedum-icon.png) (:storage-key |sedum-slide)
           :examples $ []
-          :schema $ :: 'Map 'Tag 'String
+          :schema $ quote $ Map Tag String
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote $ ns app.config
     'app.main $ %{} 'FileEntry
@@ -650,27 +611,25 @@
         '*reel $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defref *reel (typed/new-reel schema/store)
           :examples $ []
-          :schema $ :: 'Ref $ :: 'reel.typed/State 'app.schema/Op 'app.schema/Store
+          :schema $ quote $ Ref (reel.typed/State app.schema/Op app.schema/Store)
         '*storage-failed? $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defref *storage-failed? false
           :examples $ []
-          :schema $ :: 'Ref 'Bool
+          :schema $ quote $ Ref Bool
         'HighlightHost $ %{} 'CodeEntry (:doc |)
           :code $ quote $ deftrait HighlightHost
-            .register-language! $ :: 'Fn $ {}
-              :args $ [] 'app.main/HighlightHost 'String 'JsObject
-              :return 'Unit
+            .register-language! $ quote $ Fn app.main/HighlightHost String JsObject (-> Unit)
           :examples $ []
           :ffi $ {} (:backend :js) (:kind :external-object) (:target :browser)
             :names $ {} $ :register-language! |registerLanguage
-          :schema $ :: 'Trait
+          :schema $ quote Trait
         'SlideAreaHost $ %{} 'CodeEntry (:doc |)
           :code $ quote $ deftrait SlideAreaHost (:scroll-top 'Number)
           :examples $ []
           :ffi $ {} (:backend :js) (:kind :external-object) (:target :browser)
             :names $ {} $ :scroll-top |scrollTop
             :writable $ #{} :scroll-top
-          :schema $ :: 'Trait
+          :schema $ quote Trait
         'dispatch! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn dispatch! (message)
             if (enum? message)
@@ -683,9 +642,7 @@
               raise "|Expected Enum operation"
             , &unit
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'Unit)
-            :args $ [] 'Enum
-            :features $ #{} :js-ffi
+          :schema $ quote $ Fn Enum (-> Unit) (:features :js-ffi)
         'handle-direction! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn handle-direction! (event)
             let
@@ -720,9 +677,7 @@
                 dispatch! $ schema/Op :router :headlines
               , &unit
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'Unit)
-            :args $ [] 'js-ffi.browser/EventHost
-            :features $ #{} :js-ffi
+          :schema $ quote $ Fn js-ffi.browser/EventHost (-> Unit) (:features :js-ffi)
         'load-content! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn load-content! (url)
             match
@@ -744,9 +699,7 @@
               (:err error)
                 do (eprintln |failed-to-fetch-slides: error) &unit
           :examples $ []
-          :schema $ :: 'Fn $ {} (:async true) (:return 'Unit)
-            :args $ [] 'String
-            :features $ #{} :js-ffi
+          :schema $ quote $ Fn String (-> Unit) (:features :js-ffi) (:async)
         'main! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn main! ()
             println "|Running mode:" $ if config/dev?
@@ -772,14 +725,12 @@
             println "|App started."
             , &unit
           :examples $ []
-          :schema $ :: 'Fn $ {} (:async true) (:return 'Unit)
-            :args $ []
-            :features $ #{} :js-ffi
+          :schema $ quote $ Fn (-> Unit) (:features :js-ffi) (:async)
         'mount-target $ %{} 'CodeEntry (:doc |)
           :code $ quote $ def mount-target
             narrow-element $ .unwrap $ query-selector |.app
           :examples $ []
-          :schema $ :: 'respo.dom/DomElement
+          :schema $ quote respo.dom/DomElement
         'persist-storage! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn persist-storage! ()
             when-not @*storage-failed? $ storage-set!
@@ -787,17 +738,13 @@
               format-cirru-edn $ @*reel :store
             , &unit
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'Unit)
-            :args $ []
-            :features $ #{} :js-ffi
+          :schema $ quote $ Fn (-> Unit) (:features :js-ffi)
         'register-language! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn register-language! (name language)
             .register-language! (unsafe-coerce hljs 'app.main/HighlightHost) name language
           :examples $ []
           :ffi $ {} (:backend :js) (:target :browser)
-          :schema $ :: 'Fn $ {} (:return 'Unit)
-            :args $ [] 'String 'JsObject
-            :features $ #{} :js-ffi
+          :schema $ quote $ Fn String JsObject (-> Unit) (:features :js-ffi)
         'reload! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn reload! ()
             if (nil? build-errors)
@@ -808,15 +755,12 @@
               hud! |error build-errors
             , &unit
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'Unit)
-            :args $ []
-            :features $ #{} :js-ffi
+          :schema $ quote $ Fn (-> Unit) (:features :js-ffi)
         'render-app! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn render-app! ()
             render! mount-target (comp-container @*reel) dispatch!
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'Unit)
-            :args $ []
+          :schema $ quote $ Fn (-> Unit)
         'repeat! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn repeat! (duration cb)
             set-timeout!
@@ -824,10 +768,9 @@
               * 1000 duration
             , &unit
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'Unit)
-            :args $ [] 'Number $ :: 'Fn
-              {} (:return 'Unit)
-                :args $ []
+          :schema $ quote $ Fn Number
+            Fn $ -> Unit
+            -> Unit
         'restore-storage! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn restore-storage! (raw)
             try
@@ -839,9 +782,7 @@
               fn (message) (reset! *storage-failed? true) (hud! |error "|存档加载失败，已暂停自动保存以保留原数据。") &unit
             , &unit
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'Unit)
-            :args $ [] 'String
-            :features $ #{} :js-ffi
+          :schema $ quote $ Fn String (-> Unit) (:features :js-ffi)
         'scroll-top! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn scroll-top! ()
             let
@@ -852,14 +793,12 @@
                   , :scroll-top 0
             , &unit
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'Unit)
-            :args $ []
-            :features $ #{} :js-ffi
+          :schema $ quote $ Fn (-> Unit) (:features :js-ffi)
         'ssr? $ %{} 'CodeEntry (:doc |)
           :code $ quote $ def ssr?
             .some? $ query-selector |meta.respo-ssr
           :examples $ []
-          :schema $ :: 'Bool
+          :schema $ quote Bool
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote $ ns app.main
           :require
@@ -886,9 +825,11 @@
       :defs $ {}
         'Op $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defenum Op
-            :states (:: 'List 'Dynamic) 'Dynamic
+            :states
+              quote $ List Dynamic
+              , 'Dynamic
             :router 'Tag
-            :render-slides $ :: 'List 'String
+            :render-slides $ quote $ List String
             :slide-up
             :page 'Number
             :slide-down
@@ -903,15 +844,15 @@
             :reel/reset
             :reel/remove 'Number
           :examples $ []
-          :schema $ :: 'EnumDef
+          :schema $ quote EnumDef
         'Store $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defstruct Store
-            :states $ :: 'Map 'Dynamic 'Dynamic
+            :states $ quote $ Map Dynamic Dynamic
             :router 'Tag
-            :slides $ :: 'List 'String
+            :slides $ quote $ List String
             :page 'Number
           :examples $ []
-          :schema $ :: 'StructDef
+          :schema $ quote StructDef
         'decode-op $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn decode-op (message)
             match message
@@ -934,21 +875,19 @@
               (:add-slide v0)
                 Op :add-slide $ decode-map-as v0 'Number
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'app.schema/Op)
-            :args $ [] 'Enum
+          :schema $ quote $ Fn Enum (-> app.schema/Op)
         'decode-store $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn decode-store (value)
             decode-map-as
               if (struct? value) (&struct:to-map value) value
               , 'app.schema/Store
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'app.schema/Store)
-            :args $ [] 'Dynamic
+          :schema $ quote $ Fn Dynamic (-> app.schema/Store)
         'store $ %{} 'CodeEntry (:doc |)
           :code $ quote $ def store
             Store :states ({}) :router :home :slides ([]) :page 0
           :examples $ []
-          :schema $ :: 'app.schema/Store
+          :schema $ quote app.schema/Store
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote $ ns app.schema
     'app.updater $ %{} 'FileEntry
@@ -997,8 +936,7 @@
                       assoc :router :edit-slide
                 _ $ do (println |Unknown-op: op) store
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'app.schema/Store)
-            :args $ [] 'app.schema/Store 'app.schema/Op 'String 'Number
+          :schema $ quote $ Fn app.schema/Store app.schema/Op String Number (-> app.schema/Store)
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote $ ns app.updater
           :require
@@ -1014,9 +952,8 @@
                 not $ blank? $ unsafe-coerce line 'String
               first
           :examples $ []
-          :schema $ :: 'Fn $ {}
-            :args $ [] 'String
-            :features $ #{} :js-ffi
-            :return $ :: 'Option 'String
+          :schema $ quote $ Fn String
+            -> $ Option String
+            :features :js-ffi
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote $ ns app.util

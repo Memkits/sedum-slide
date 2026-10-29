@@ -1,8 +1,7 @@
 ## Sedum Slide
 
-使用者影响：本候选将 CLI / `@calcit/procs` 成对升级到正式 **0.31.0**，依赖图同步为 Respo **0.17.0-alpha.4**、UI **0.9.0-alpha.4**、Reel **0.7.0-alpha.4**、Markdown **0.5.0-alpha.4**、Feather **0.5.0-alpha.5**、JS-FFI **0.2.7**。开发者须整图更新、重新生成 JS 并重启开发服务；依赖解析使用真实发布的 tags，不用 main/hash 或本地候选代替发布图。
-
-源码迁移只将 11 个定义中 8 处 option:unwrap、8 处 option:some?、4 处 option:unwrap-or 改为公开 .unwrap/.some?/.unwrap-or；接收者已为 Option，逐项保留参数子树、默认值和求值顺序。绘图/Markdown 分页、标题选择、存档、键盘、`hud!` 及语音调用不变。依赖升级带入上游已发布修复，不宣称整个图行为完全不变。原 App 版本 0.2.0-alpha.1、Node 24、Yarn 4.18.0 及 Speech SDK 保持；本次不发 App tag/npm。
+使用者影响：本候选将 CLI / `@calcit/procs` 成对升级到正式 **0.32.1**，依赖图同步为 Respo **0.17.1**、UI **0.9.0**、Reel **0.7.0-alpha.5**、Markdown **0.5.0-alpha.5**、Feather **0.5.0-alpha.6**、JS-FFI **0.2.9**。开发者须整图更新、重新生成 JS 并重启开发服务；依赖解析使用真实发布的 tags，不用 main/hash 或本地候选代替发布图。Snapshot 类型写法已用 `calcit calcit.cirru edit format` 迁移到 0.32 语法。App 版本为 0.2.0-alpha.2，本次不发 App tag/npm。
+历史（0.31 迁移）：源码迁移只将 11 个定义中 8 处 option:unwrap、8 处 option:some?、4 处 option:unwrap-or 改为公开 .unwrap/.some?/.unwrap-or；接收者已为 Option，逐项保留参数子树、默认值和求值顺序。绘图/Markdown 分页、标题选择、存档、键盘、`hud!` 及语音调用不变。依赖升级带入上游已发布修复，不宣称整个图行为完全不变。原 App 版本 0.2.0-alpha.1、Node 24、Yarn 4.18.0 及 Speech SDK 保持；本次不发 App tag/npm。
 
 Demo http://r.tiye.me/Memkits/sedum-slide/
 
@@ -27,7 +26,7 @@ Clicks on pager:
 
 https://github.com/calcit-lang/respo-calcit-workflow
 
-Use paired formal Calcit/procs 0.31.0 with canonical calcit.cirru/deps.cirru.
+Use paired formal Calcit/procs 0.32.1 with canonical calcit.cirru/deps.cirru.
 Run `caps --ci --strict`, `yarn install --immutable`, then `yarn dev` or `yarn build`.
 Development compiles once before Vite; run `calcit calcit.cirru -w` separately for edits, without concurrently.
 
