@@ -47,9 +47,9 @@ Store、Op 与 `reel.typed/State Op Store` 保留真实名义数据；不把 Ree
 
 语音保持原 SDK、region、voice 和调度；Markdown 块按实际 Enum 读取，只转换文本块。Azure key 缺失时不发起调用，正文中的 XML 特殊字符按纯文本转义。历史验收使用过离线 SDK stub；本轮不调用语音服务，也不把历史结果算作新的 SDK/Azure、音频或浏览器全屏验收。
 
-已反馈上游：[effect 参数门禁](https://github.com/Respo/respo.calcit/issues/276)、[Markdown 文本块类型投影](https://github.com/Respo/respo-markdown.calcit/issues/81)、[翻页 DOM 告警](https://github.com/Respo/respo.calcit/issues/277)。标题/段落切换到代码块时曾出现一次 already-removed 告警，但页面与高亮正确；不隐藏告警或强制重挂载，等待上游确认根因。SSML 正文转义修复见 [#60](https://github.com/Memkits/sedum-slide/issues/60)。
+已反馈上游：[effect 参数门禁](https://github.com/Respo/respo.calcit/issues/277)、[Markdown 文本块类型投影](https://github.com/Respo/respo-markdown.calcit/issues/81)、[翻页 DOM 告警](https://github.com/Respo/respo.calcit/issues/276)。这些两条 Respo issue 已关闭；原标题/段落到代码块的 already-removed 告警在本轮未复现，不隐藏告警或强制重挂载。正式 Markdown 0.7.1 的 split-block 仍为 List<Dynamic>，尚无文本块投影，#81 继续跟踪；本轮保留消费端实际 Enum/payload 解码，不扩充编译器规则。SSML 正文转义修复见 [#60](https://github.com/Memkits/sedum-slide/issues/60)。
 
-本轮全新回环来源与独立 Chrome 使用合成三页 Markdown 验收拆分、左右翻页、代码高亮、单页提交、全文往返和实际 ⌘Enter、标题选择、刷新恢复及 Reel Reset，页面异常和 console warn/error 均为空。未调用语音、复制或全屏，未加载远程 content URL，不读取真实存档或文件。此前 #277 的 DOM 告警在本合成流程未复现，不等同确认所有场景根因修复。坏存档、HUD 编译错误和真实服务未重新注入验收；restore-storage!/保存 guard/main!/reload! 的实现保持。
+本轮全新回环来源与独立 Chrome 使用合成三页 Markdown 验收拆分、左右翻页、代码高亮、单页提交、全文往返和实际 ⌘Enter、标题选择、刷新恢复及 Reel Reset，页面异常和 console warn/error 均为空。未调用语音、复制或全屏，未加载远程 content URL，不读取真实存档或文件。此前 #276 的 DOM 告警在本合成流程未复现，不等同确认所有场景根因修复。坏存档、HUD 编译错误和真实服务未重新注入验收；restore-storage!/保存 guard/main!/reload! 的实现保持。
 
 ### License
 
