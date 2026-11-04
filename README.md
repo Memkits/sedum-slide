@@ -1,7 +1,14 @@
 ## Sedum Slide
 
-使用者影响：本候选将 CLI / `@calcit/procs` 成对升级到正式 **0.32.1**，依赖图同步为 Respo **0.17.1**、UI **0.9.0**、Reel **0.7.0-alpha.5**、Markdown **0.5.0-alpha.5**、Feather **0.5.0-alpha.6**、JS-FFI **0.2.9**。开发者须整图更新、重新生成 JS 并重启开发服务；依赖解析使用真实发布的 tags，不用 main/hash 或本地候选代替发布图。Snapshot 类型写法已用 `calcit calcit.cirru edit format` 迁移到 0.32 语法。App 版本为 0.2.0-alpha.2，本次不发 App tag/npm。
-历史（0.31 迁移）：源码迁移只将 11 个定义中 8 处 option:unwrap、8 处 option:some?、4 处 option:unwrap-or 改为公开 .unwrap/.some?/.unwrap-or；接收者已为 Option，逐项保留参数子树、默认值和求值顺序。绘图/Markdown 分页、标题选择、存档、键盘、`hud!` 及语音调用不变。依赖升级带入上游已发布修复，不宣称整个图行为完全不变。原 App 版本 0.2.0-alpha.1、Node 24、Yarn 4.18.0 及 Speech SDK 保持；本次不发 App tag/npm。
+使用者影响：CLI / `@calcit/procs` 成对升级到正式 **0.34.2**，模块统一为正式 Respo **0.19.2**、UI **0.14.1**、Reel **0.9.0**、Markdown **0.7.1**、Feather **0.6.0**、JS-FFI **0.2.10**，传递 Router **0.11.2**。须严格整图更新、重新生成 JS 并刷新，不混用旧 runtime 或旧 alpha 模块。App 自身版本保持 0.2.0-alpha.2，本次不发 App tag/npm，不合并或生产部署。
+
+本轮保留 Markdown 分页、编辑/标题选择、页码/空页删除、存档、键盘、HUD 和语音策略。真实 `hud!` 页面错误提示保留，不改成 raise。事件回调采用实际 RespoEvent 和原字段检查，缺席子节点使用 Option，浏览器根在 managed memo frame 内构建/渲染。旧间距迁为方向 API；原 `=< 20 0` 实际只设置 width，保持为 `space-x 20`。
+
+受检派发结果采用真实 `ResolvedOp = Op | reel.typed/Control` union，内部穷尽匹配；原 Enum 检查、控制优先和业务 decoder 顺序保留。业务 Op 的既有变体、Store 和 wire 格式不收窄。整次修改仅用官方结构化 CLI，不新增编译器 fix/proof 规则。
+
+清理已知 String 的强转，焦点使用 Respo 已提供的 DOM 合同，滚动使用已有 writable DOM 字段；Date/Highlight.js 用现有 external-object trait 的浅层成员检查。原 String/局部滚动桥接 trait 两个内部定义退役，grab-headline 去掉不再需要的 JS FFI feature。unsafe **10→1**，剩余一处是已有 RegExp 构造的 opaque 边界，不用空 trait 检查宣称其已验证。浅层成员检查不证明所有返回值或宿主身份。codeNil **10→4**，剩余四处维持原 UI 状态清空合同；schemaDynamic 仍为五个真实开放位置（两个混合状态 Map 的 key/value 与存档 decoder），不声称消除了任意状态数据。
+
+最终本地 384 个全定义、九个应用 namespace 的 60 个定义、完整 strict diagnostics=[]、deprecated/dynamic-method=0、Caps 七模块和工具链配对、immutable、canonical 及 Vite 构建通过。原项目无附带单元测试，不把空集记为通过，也不新增防御性测试矩阵。源码原 59 个定义保留 57 个，新增 union/两个内部派发函数；除 grab-headline 收紧为纯函数外，其他保留定义的 schema、所有附带 metadata 不变。
 
 Demo http://r.tiye.me/Memkits/sedum-slide/
 
@@ -26,7 +33,7 @@ Clicks on pager:
 
 https://github.com/calcit-lang/respo-calcit-workflow
 
-Use paired formal Calcit/procs 0.32.1 with canonical calcit.cirru/deps.cirru.
+Use paired formal Calcit/procs 0.34.2 with canonical calcit.cirru/deps.cirru.
 Run `caps --ci --strict`, `yarn install --immutable`, then `yarn dev` or `yarn build`.
 Development compiles once before Vite; run `calcit calcit.cirru -w` separately for edits, without concurrently.
 
@@ -42,7 +49,7 @@ Store、Op 与 `reel.typed/State Op Store` 保留真实名义数据；不把 Ree
 
 已反馈上游：[effect 参数门禁](https://github.com/Respo/respo.calcit/issues/276)、[Markdown 文本块类型投影](https://github.com/Respo/respo-markdown.calcit/issues/81)、[翻页 DOM 告警](https://github.com/Respo/respo.calcit/issues/277)。标题/段落切换到代码块时曾出现一次 already-removed 告警，但页面与高亮正确；不隐藏告警或强制重挂载，等待上游确认根因。SSML 正文转义修复见 [#60](https://github.com/Memkits/sedum-slide/issues/60)。
 
-本轮实际新回环页面已用合成三页 Markdown 验收分页、左右翻页、代码高亮、单页编辑、标题选择、全文往返及刷新恢复；未调用语音、复制或全屏。原项目没有附带单元测试，不把空测试当作通过，也不为本次迁移增加防御性测试脚本。
+本轮全新回环来源与独立 Chrome 使用合成三页 Markdown 验收拆分、左右翻页、代码高亮、单页提交、全文往返和实际 ⌘Enter、标题选择、刷新恢复及 Reel Reset，页面异常和 console warn/error 均为空。未调用语音、复制或全屏，未加载远程 content URL，不读取真实存档或文件。此前 #277 的 DOM 告警在本合成流程未复现，不等同确认所有场景根因修复。坏存档、HUD 编译错误和真实服务未重新注入验收；restore-storage!/保存 guard/main!/reload! 的实现保持。
 
 ### License
 
