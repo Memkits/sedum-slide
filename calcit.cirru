@@ -48,13 +48,13 @@
             let
                 cursor $ decode-map-as
                   .unwrap $ get states :cursor
-                  quote $ List Dynamic
+                  List respo.schema/CoordKey
                 fallback-state $ {} $ :content
                   join-string slides $ str &newline |---- &newline
                 state $ match (get states :data)
                   (:none) fallback-state
                   (:some raw-state)
-                    if (nil? raw-state) fallback-state $ decode-map-as raw-state $ quote (Map Tag String)
+                    if (nil? raw-state) fallback-state $ decode-map-as raw-state $ Map Tag String
                 content $ .unwrap $ get state :content
               [] (effect-focus)
                 div
@@ -158,7 +158,7 @@
           :code $ quote $ defn split-regex (text pattern)
             decode-map-as
               to-calcit-data (.!split text pattern) true
-              quote $ List String
+              List String
           :examples $ []
           :schema $ quote $ Fn String app.comp.container/RegexHost
             -> $ List String
@@ -200,12 +200,12 @@
             let
                 cursor $ decode-map-as
                   .unwrap $ get states :cursor
-                  quote $ List Dynamic
+                  List respo.schema/CoordKey
                 fallback-state $ {} $ :draft slide
                 state $ match (get states :data)
                   (:none) fallback-state
                   (:some raw-state)
-                    if (nil? raw-state) fallback-state $ decode-map-as raw-state $ quote (Map Tag String)
+                    if (nil? raw-state) fallback-state $ decode-map-as raw-state $ Map Tag String
                 draft $ .unwrap $ get state :draft
               [] (effect-focus)
                 div
@@ -375,8 +375,8 @@
       :defs $ {}
         'DateHost $ %{} 'CodeEntry (:doc |)
           :code $ quote $ deftrait DateHost
-            .get-hours $ quote $ Fn app.comp.slides/DateHost (-> Number)
-            .get-minutes $ quote $ Fn app.comp.slides/DateHost (-> Number)
+            .get-hours $ Fn app.comp.slides/DateHost $ -> Number
+            .get-minutes $ Fn app.comp.slides/DateHost $ -> Number
           :examples $ []
           :ffi $ {} (:backend :js) (:kind :external-object) (:target :browser)
             :names $ {} (:get-hours |getHours) (:get-minutes |getMinutes)
@@ -388,7 +388,7 @@
           :schema $ quote Trait
         'HljsHost $ %{} 'CodeEntry (:doc |)
           :code $ quote $ deftrait HljsHost
-            .highlight $ quote $ Fn app.comp.slides/HljsHost String JsObject (-> app.comp.slides/HighlightResultHost)
+            .highlight $ Fn app.comp.slides/HljsHost String JsObject $ -> app.comp.slides/HighlightResultHost
           :examples $ []
           :ffi $ {} (:backend :js) (:kind :external-object) (:target :browser)
           :schema $ quote Trait
@@ -488,9 +488,7 @@
                   grab-headline $ .unwrap maybe-slide
                   Option :none
               div
-                {} $ :style $ merge
-                  {} $ :position :absolute
-                  {} (:position :absolute) (:right right) (:bottom bottom)
+                {} $ :style $ {} (:position :absolute) (:right right) (:bottom bottom)
                 if (.some? maybe-first-line)
                   span
                     {} $ :style $ {}
@@ -587,7 +585,7 @@
                   match piece
                     (:text raw-lines)
                       let
-                          lines $ decode-map-as raw-lines $ quote (List String)
+                          lines $ decode-map-as raw-lines $ List String
                           joined $ join-string lines |
                         if
                           or (starts-with? joined |![]) (starts-with? joined "|> ")
@@ -668,7 +666,7 @@
           :schema $ quote $ Ref Bool
         'HighlightHost $ %{} 'CodeEntry (:doc |)
           :code $ quote $ deftrait HighlightHost
-            .register-language! $ quote $ Fn app.main/HighlightHost String JsObject (-> Unit)
+            .register-language! $ Fn app.main/HighlightHost String JsObject $ -> Unit
           :examples $ []
           :ffi $ {} (:backend :js) (:kind :external-object) (:target :browser)
             :names $ {} $ :register-language! |registerLanguage
@@ -884,11 +882,9 @@
       :defs $ {}
         'Op $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defenum Op
-            :states
-              quote $ List Dynamic
-              , Dynamic
+            :states (List respo.schema/CoordKey) Dynamic
             :router Tag
-            :render-slides $ quote $ List String
+            :render-slides $ List String
             :slide-up
             :page Number
             :slide-down
@@ -910,9 +906,9 @@
           :schema $ quote UnionDef
         'Store $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defstruct Store
-            :states $ quote $ Map Dynamic Dynamic
+            :states $ Map Dynamic Dynamic
             :router Tag
-            :slides $ quote $ List String
+            :slides $ List String
             :page Number
           :examples $ []
           :schema $ quote StructDef
@@ -921,12 +917,12 @@
             match message
               (:states v0 v1)
                 Op :states
-                  decode-map-as v0 $ quote $ List Dynamic
+                  decode-map-as v0 $ List respo.schema/CoordKey
                   , v1
               (:router v0)
                 Op :router $ decode-map-as v0 'Tag
               (:render-slides v0)
-                Op :render-slides $ decode-map-as v0 $ quote (List String)
+                Op :render-slides $ decode-map-as v0 $ List String
               (:slide-up) (Op :slide-up)
               (:page v0)
                 Op :page $ decode-map-as v0 'Number
@@ -964,7 +960,7 @@
                 (:states cursor state-data)
                   assoc store :states $ decode-map-as
                     assoc-in (store :states) (conj cursor :data) state-data
-                    quote $ Map Dynamic Dynamic
+                    Map Dynamic Dynamic
                 (:router router) (assoc store :router router)
                 (:render-slides data)
                   let

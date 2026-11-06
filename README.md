@@ -1,14 +1,14 @@
 ## Sedum Slide
 
-使用者影响：CLI / `@calcit/procs` 成对升级到正式 **0.34.2**，模块统一为正式 Respo **0.19.2**、UI **0.14.1**、Reel **0.9.0**、Markdown **0.7.1**、Feather **0.6.0**、JS-FFI **0.2.10**，传递 Router **0.11.2**。须严格整图更新、重新生成 JS 并刷新，不混用旧 runtime 或旧 alpha 模块。App 自身版本保持 0.2.0-alpha.2，本次不发 App tag/npm，不合并或生产部署。
+使用者影响：CLI / `@calcit/procs` 成对升级到正式 **0.35.1**，模块统一为正式 Respo **0.19.4**、UI **0.15.1**、Reel **0.9.2**、Markdown **0.8.1**、Feather **0.6.2**、JS-FFI **0.2.13**，传递 Router **0.12.1**。须严格整图更新、重新生成 JS 并刷新，不混用旧 runtime 或旧 alpha 模块。App 候选版本为 0.2.0。
 
 本轮保留 Markdown 分页、编辑/标题选择、页码/空页删除、存档、键盘、HUD 和语音策略。真实 `hud!` 页面错误提示保留，不改成 raise。事件回调采用实际 RespoEvent 和原字段检查，缺席子节点使用 Option，浏览器根在 managed memo frame 内构建/渲染。旧间距迁为方向 API；原 `=< 20 0` 实际只设置 width，保持为 `space-x 20`。
 
-受检派发结果采用真实 `ResolvedOp = Op | reel.typed/Control` union，内部穷尽匹配；原 Enum 检查、控制优先和业务 decoder 顺序保留。业务 Op 的既有变体、Store 和 wire 格式不收窄。整次修改仅用官方结构化 CLI，不新增编译器 fix/proof 规则。
+受检派发结果采用真实 `ResolvedOp = Op | reel.typed/Control` union，内部穷尽匹配；原 Enum 检查、控制优先和业务 decoder 顺序保留。原业务 Op 变体、Store 和存档格式沿用。组件状态路径使用 CoordKey union，提词器继续使用原定位样式。整次修改仅用官方结构化 CLI，不新增编译器 fix/proof 规则。
 
 清理已知 String 的强转，焦点使用 Respo 已提供的 DOM 合同，滚动使用已有 writable DOM 字段；Date/Highlight.js 用现有 external-object trait 的浅层成员检查。原 String/局部滚动桥接 trait 两个内部定义退役，grab-headline 去掉不再需要的 JS FFI feature。unsafe **10→1**，剩余一处是已有 RegExp 构造的 opaque 边界，不用空 trait 检查宣称其已验证。浅层成员检查不证明所有返回值或宿主身份。codeNil **10→4**，剩余四处维持原 UI 状态清空合同；schemaDynamic 仍为五个真实开放位置（两个混合状态 Map 的 key/value 与存档 decoder），不声称消除了任意状态数据。
 
-最终本地 384 个全定义、九个应用 namespace 的 60 个定义、完整 strict diagnostics=[]、deprecated/dynamic-method=0、Caps 七模块和工具链配对、immutable、canonical 及 Vite 构建通过。原项目无附带单元测试，不把空集记为通过，也不新增防御性测试矩阵。源码原 59 个定义保留 57 个，新增 union/两个内部派发函数；除 grab-headline 收紧为纯函数外，其他保留定义的 schema、所有附带 metadata 不变。
+最终本地 384 个全定义、九个应用 namespace 的 60 个定义、完整 strict diagnostics=[]、deprecated/dynamic-method=0、Caps 七模块和工具链配对、immutable、canonical 及 Vite 构建通过。原项目无附带单元测试，不把空集记为通过，也不新增防御性测试矩阵。
 
 Demo http://r.tiye.me/Memkits/sedum-slide/
 
@@ -33,7 +33,7 @@ Clicks on pager:
 
 https://github.com/calcit-lang/respo-calcit-workflow
 
-Use paired formal Calcit/procs 0.34.2 with canonical calcit.cirru/deps.cirru.
+Use paired formal Calcit/procs 0.35.1 with canonical calcit.cirru/deps.cirru.
 Run `caps --ci --strict`, `yarn install --immutable`, then `yarn dev` or `yarn build`.
 Development compiles once before Vite; run `calcit calcit.cirru -w` separately for edits, without concurrently.
 
@@ -47,7 +47,7 @@ Store、Op 与 `reel.typed/State Op Store` 保留真实名义数据；不把 Ree
 
 语音保持原 SDK、region、voice 和调度；Markdown 块按实际 Enum 读取，只转换文本块。Azure key 缺失时不发起调用，正文中的 XML 特殊字符按纯文本转义。历史验收使用过离线 SDK stub；本轮不调用语音服务，也不把历史结果算作新的 SDK/Azure、音频或浏览器全屏验收。
 
-已反馈上游：[effect 参数门禁](https://github.com/Respo/respo.calcit/issues/277)、[Markdown 文本块类型投影](https://github.com/Respo/respo-markdown.calcit/issues/81)、[翻页 DOM 告警](https://github.com/Respo/respo.calcit/issues/276)。这些两条 Respo issue 已关闭；原标题/段落到代码块的 already-removed 告警在本轮未复现，不隐藏告警或强制重挂载。正式 Markdown 0.7.1 的 split-block 仍为 List<Dynamic>，尚无文本块投影，#81 继续跟踪；本轮保留消费端实际 Enum/payload 解码，不扩充编译器规则。SSML 正文转义修复见 [#60](https://github.com/Memkits/sedum-slide/issues/60)。
+已反馈上游：[effect 参数门禁](https://github.com/Respo/respo.calcit/issues/277)、[Markdown 文本块类型投影](https://github.com/Respo/respo-markdown.calcit/issues/81)、[翻页 DOM 告警](https://github.com/Respo/respo.calcit/issues/276)。这些两条 Respo issue 已关闭；原标题/段落到代码块的 already-removed 告警在本轮未复现，不隐藏告警或强制重挂载。正式 Markdown 0.8.1 的 split-block 仍为 List<Dynamic>，尚无文本块投影，#81 继续跟踪；本轮保留消费端实际 Enum/payload 解码，不扩充编译器规则。SSML 正文转义修复见 [#60](https://github.com/Memkits/sedum-slide/issues/60)。
 
 本轮全新回环来源与独立 Chrome 使用合成三页 Markdown 验收拆分、左右翻页、代码高亮、单页提交、全文往返和实际 ⌘Enter、标题选择、刷新恢复及 Reel Reset，页面异常和 console warn/error 均为空。未调用语音、复制或全屏，未加载远程 content URL，不读取真实存档或文件。此前 #276 的 DOM 告警在本合成流程未复现，不等同确认所有场景根因修复。坏存档、HUD 编译错误和真实服务未重新注入验收；restore-storage!/保存 guard/main!/reload! 的实现保持。
 
