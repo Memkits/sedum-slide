@@ -16,7 +16,7 @@
           :ffi $ {} (:backend :js) (:kind :external-object) (:target :browser)
           :schema $ quote Trait
         'comp-container $ %{} 'CodeEntry (:doc |)
-          :code $ quote $ defcomp comp-container (reel)
+          :code $ quote $ defcomp comp-container (reel on-control!)
             let
                 store $ reel :store
                 states store.:states
@@ -36,13 +36,15 @@
                     {} $ :class-name css/expand
                     <> $ str |Unknown: router
                 if dev?
-                  Option :some $ comp-reel (>> states :reel) (reel-view/view-data reel) ({})
+                  Option :some $ comp-typed-reel (>> states :reel) reel ({}) on-control!
                   Option :none
                 if dev?
                   Option :some $ comp-inspect |Store store $ {} (:bottom 0) (:left 100)
                   Option :none
           :examples $ []
-          :schema $ quote $ Fn (reel.typed/State app.schema/Op app.schema/Store) (-> respo.schema/Component)
+          :schema $ quote $ Fn (reel.typed/State app.schema/Op app.schema/Store)
+            Fn reel.typed/Control $ -> Unit
+            -> respo.schema/Component
         'comp-draft $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defcomp comp-draft (states slides)
             let
@@ -182,7 +184,7 @@
             respo.css :refer $ defstyle
             respo.core :refer $ defcomp >> <> div button textarea span defeffect
             respo.comp.space :refer $ space-y
-            reel.comp.reel :refer $ comp-reel
+            reel.comp.reel :refer $ comp-typed-reel
             respo-md.comp.md :refer $ comp-md
             app.config :refer $ dev?
             respo.comp.inspect :refer $ comp-inspect
@@ -192,7 +194,6 @@
             app.comp.edit-slide :refer $ comp-edit-slide
             app.schema :as app-schema
             js-ffi.browser :refer $ keyboard-event-host
-            reel.typed-compat :as reel-view
     'app.comp.edit-slide $ %{} 'FileEntry
       :defs $ {}
         'comp-edit-slide $ %{} 'CodeEntry (:doc |)
@@ -274,7 +275,6 @@
             respo-ui.css :as css
             respo.core :refer $ defcomp >> <> div button textarea span defeffect
             respo.comp.space :refer $ space-y
-            reel.comp.reel :refer $ comp-reel
             respo-md.comp.md :refer $ comp-md
             app.config :refer $ dev?
             respo.comp.inspect :refer $ comp-inspect
@@ -362,7 +362,6 @@
             respo.css :refer $ defstyle
             respo.core :refer $ defcomp >> list-> <> div button textarea span
             respo.comp.space :refer $ space-x
-            reel.comp.reel :refer $ comp-reel
             respo-md.comp.md :refer $ comp-md-block comp-md
             app.config :refer $ dev?
             respo.comp.inspect :refer $ comp-inspect
@@ -619,7 +618,6 @@
             respo-ui.css :as css
             respo.core :refer $ defcomp defeffect >> <> div button textarea span
             respo.comp.space :refer $ space-x
-            reel.comp.reel :refer $ comp-reel
             respo-md.comp.md :refer $ comp-md-block comp-md
             app.config :refer $ dev? readable?
             respo.comp.inspect :refer $ comp-inspect
@@ -678,16 +676,6 @@
             , &unit
           :examples $ []
           :schema $ quote $ Fn app.schema/ResolvedOp (-> Unit) (:features :js-ffi)
-        'dispatch-from-view! $ %{} 'CodeEntry (:doc |)
-          :code $ quote $ defn dispatch-from-view! (message)
-            if (enum? message)
-              match (typed/decode-control message)
-                (:some control) (dispatch! control)
-                (:none)
-                  dispatch! $ schema/decode-op message
-              raise "|Expected Enum operation"
-          :examples $ []
-          :schema $ quote $ Fn AnyEnum (-> Unit) (:features :js-ffi)
         'handle-direction! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn handle-direction! (event)
             let
@@ -757,7 +745,7 @@
             register-language! |json json-lang
             render-app!
             add-watch! *reel :changes $ fn (r p) (render-app!)
-            listen-devtools-toggle! |a $ fn () $ dispatch! (typed/Control :toggle)
+            listen-devtools! |a on-control!
             add-event-listener! |beforeunload $ fn (_event) (persist-storage!)
             repeat! 60 persist-storage!
             match
@@ -786,6 +774,10 @@
           :schema $ quote $ Fn app.schema/ResolvedOp
             -> $ reel.typed/State app.schema/Op app.schema/Store
             :features :js-ffi
+        'on-control! $ %{} 'CodeEntry (:doc |)
+          :code $ quote $ defn on-control! (control) (dispatch! control)
+          :examples $ []
+          :schema $ quote $ Fn reel.typed/Control (-> Unit) (:features :js-ffi)
         'persist-storage! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn persist-storage! ()
             when-not @*storage-failed? $ storage-set!
@@ -814,8 +806,8 @@
         'render-app! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn render-app! ()
             render-with! mount-target
-              fn () $ comp-container @*reel
-              , dispatch-from-view!
+              fn () $ comp-container @*reel on-control!
+              , dispatch!
           :examples $ []
           :schema $ quote $ Fn (-> Unit)
         'repeat! $ %{} 'CodeEntry (:doc |)
@@ -861,7 +853,7 @@
           :require
             respo.core :refer $ render-with! clear-cache! realize-ssr! *changes-logger
             app.updater :refer $ updater
-            reel.util :refer $ listen-devtools-toggle!
+            reel.util :refer $ listen-devtools!
             app.config :as config
             |highlight.js :default hljs
             |highlight.js/lib/languages/clojure :default clojure-lang
@@ -905,29 +897,6 @@
             :page Number
           :examples $ []
           :schema $ quote StructDef
-        'decode-op $ %{} 'CodeEntry (:doc |)
-          :code $ quote $ defn decode-op (message)
-            match message
-              (:states v0 v1)
-                Op :states
-                  decode-map-as v0 $ List respo.schema/CoordKey
-                  , v1
-              (:router v0)
-                Op :router $ decode-map-as v0 'Tag
-              (:render-slides v0)
-                Op :render-slides $ decode-map-as v0 $ List String
-              (:slide-up) (Op :slide-up)
-              (:page v0)
-                Op :page $ decode-map-as v0 'Number
-              (:slide-down) (Op :slide-down)
-              (:hydrate-storage v0)
-                Op :hydrate-storage $ decode-store v0
-              (:edit-slide v0)
-                Op :edit-slide $ decode-map-as v0 'String
-              (:add-slide v0)
-                Op :add-slide $ decode-map-as v0 'Number
-          :examples $ []
-          :schema $ quote $ Fn AnyEnum (-> app.schema/Op)
         'decode-store $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn decode-store (value)
             decode-map-as
