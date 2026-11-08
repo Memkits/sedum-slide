@@ -6,7 +6,7 @@
     {} (:description |) (:init-fn 'app.main/main!) (:mode :js) (:reload-fn 'app.main/reload!) (:target :browser)
       :feature-policy $ {}
       :modules $ [] |respo.calcit/ |respo-ui.calcit/ |respo-markdown.calcit/ |reel.calcit/ |respo-feather.calcit/ |js-ffi/
-      :type-slots $ {} $ :dispatch-op |app.schema/Op
+      :type-slots $ {} $ :dispatch-op 'app.schema/Op
   :files $ {}
     'app.comp.container $ %{} 'FileEntry
       :defs $ {}
@@ -68,7 +68,7 @@
                       {} (:class-name css/button)
                         :on-click $ fn (e d!)
                           hint-fn $ Fn respo.schema/RespoEvent
-                            Fn Enum $ -> Unit
+                            Fn app.schema/Op $ -> Unit
                             -> Unit
                             :features :js-ffi
                           d! $ app-schema/Op :render-slides $ split-regex content pattern-divider
@@ -83,7 +83,7 @@
                     :placeholder |Slides
                     :on-input $ fn (e d!)
                       hint-fn $ Fn respo.schema/RespoEvent
-                        Fn Enum $ -> Unit
+                        Fn app.schema/Op $ -> Unit
                         -> Unit
                         :features :js-ffi
                       d! $ app-schema/Op :states cursor $ assoc state :content
@@ -91,7 +91,7 @@
                       , &unit
                     :on-keydown $ fn (e d!)
                       hint-fn $ Fn respo.schema/RespoEvent
-                        Fn Enum $ -> Unit
+                        Fn app.schema/Op $ -> Unit
                         -> Unit
                         :features :js-ffi
                       let
@@ -146,7 +146,7 @@
                 :style $ merge $ {} (:cursor :pointer) (:margin "|16px 0")
                 :on-click $ fn (e d!)
                   hint-fn $ Fn respo.schema/RespoEvent
-                    Fn Enum $ -> Unit
+                    Fn app.schema/Op $ -> Unit
                     -> Unit
                     :features :js-ffi
                   d! $ app-schema/Op :router router-name
@@ -218,7 +218,7 @@
                     button $ {} (:class-name css/button) (:inner-text |Submit)
                       :on-click $ fn (e d!)
                         hint-fn $ Fn respo.schema/RespoEvent
-                          Fn Enum $ -> Unit
+                          Fn app.schema/Op $ -> Unit
                           -> Unit
                           :features :js-ffi
                         d! $ app-schema/Op :edit-slide draft
@@ -232,7 +232,7 @@
                     :value draft
                     :on-input $ fn (e d!)
                       hint-fn $ Fn respo.schema/RespoEvent
-                        Fn Enum $ -> Unit
+                        Fn app.schema/Op $ -> Unit
                         -> Unit
                         :features :js-ffi
                       d! $ app-schema/Op :states cursor $ assoc state :draft
@@ -241,7 +241,7 @@
                     :placeholder "|(empty page are going to be removed...)"
                     :on-keydown $ fn (e d!)
                       hint-fn $ Fn respo.schema/RespoEvent
-                        Fn Enum $ -> Unit
+                        Fn app.schema/Op $ -> Unit
                         -> Unit
                         :features :js-ffi
                       let
@@ -309,7 +309,7 @@
                             :margin-bottom $ if selected? |-1px |
                           :on-click $ fn (e d!)
                             hint-fn $ Fn respo.schema/RespoEvent
-                              Fn Enum $ -> Unit
+                              Fn app.schema/Op $ -> Unit
                               -> Unit
                               :features :js-ffi
                             d! $ app-schema/Op :page idx
@@ -405,7 +405,7 @@
                     :color $ hsl 200 90 80
                   fn (e d!)
                     hint-fn $ Fn respo.schema/RespoEvent
-                      Fn Enum $ -> Unit
+                      Fn app.schema/Op $ -> Unit
                       -> Unit
                       :features :js-ffi
                     match (get-env |azure-key)
@@ -424,7 +424,7 @@
                     :color $ hsl 200 90 80
                   fn (e d!)
                     hint-fn $ Fn respo.schema/RespoEvent
-                      Fn Enum $ -> Unit
+                      Fn app.schema/Op $ -> Unit
                       -> Unit
                       :features :js-ffi
                     match (browser/document-body)
@@ -448,7 +448,7 @@
                   :color $ hsl 200 70 80
                 :on-click $ fn (e d!)
                   hint-fn $ Fn respo.schema/RespoEvent
-                    Fn Enum $ -> Unit
+                    Fn app.schema/Op $ -> Unit
                     -> Unit
                     :features :js-ffi
                   d! $ app-schema/Op :add-slide page
@@ -460,7 +460,7 @@
                   :style $ {} $ :cursor :pointer
                   :on-click $ fn (e d!)
                     hint-fn $ Fn respo.schema/RespoEvent
-                      Fn Enum $ -> Unit
+                      Fn app.schema/Op $ -> Unit
                       -> Unit
                       :features :js-ffi
                     d! $ app-schema/Op :page 0
@@ -471,7 +471,7 @@
                 :style $ {} $ :cursor :pointer
                 :on-click $ fn (e d!)
                   hint-fn $ Fn respo.schema/RespoEvent
-                    Fn Enum $ -> Unit
+                    Fn app.schema/Op $ -> Unit
                     -> Unit
                     :features :js-ffi
                   d! $ app-schema/Op :page $ dec (.len slides)
@@ -677,7 +677,7 @@
               (:some control) control
               (:none) (schema/decode-op message)
           :examples $ []
-          :schema $ quote $ Fn Enum (-> app.schema/ResolvedOp)
+          :schema $ quote $ Fn AnyEnum (-> app.schema/ResolvedOp)
         'dispatch! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn dispatch! (message)
             if (enum? message)
@@ -687,7 +687,7 @@
               raise "|Expected Enum operation"
             , &unit
           :examples $ []
-          :schema $ quote $ Fn Enum (-> Unit) (:features :js-ffi)
+          :schema $ quote $ Fn AnyEnum (-> Unit) (:features :js-ffi)
         'handle-direction! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn handle-direction! (event)
             let
@@ -815,7 +815,9 @@
           :code $ quote $ defn render-app! ()
             render-with! mount-target
               fn () $ comp-container @*reel
-              , dispatch!
+              fn (op)
+                hint-fn $ Fn app.schema/Op $ -> Unit
+                dispatch! op
           :examples $ []
           :schema $ quote $ Fn (-> Unit)
         'repeat! $ %{} 'CodeEntry (:doc |)
@@ -934,7 +936,7 @@
               (:add-slide v0)
                 Op :add-slide $ decode-map-as v0 'Number
           :examples $ []
-          :schema $ quote $ Fn Enum (-> app.schema/Op)
+          :schema $ quote $ Fn AnyEnum (-> app.schema/Op)
         'decode-store $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn decode-store (value)
             decode-map-as
