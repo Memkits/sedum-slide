@@ -671,21 +671,21 @@
           :ffi $ {} (:backend :js) (:kind :external-object) (:target :browser)
             :names $ {} $ :register-language! |registerLanguage
           :schema $ quote Trait
-        'decode-dispatch $ %{} 'CodeEntry (:doc |)
-          :code $ quote $ defn decode-dispatch (message)
-            match (typed/decode-control message)
-              (:some control) control
-              (:none) (schema/decode-op message)
-          :examples $ []
-          :schema $ quote $ Fn AnyEnum (-> app.schema/ResolvedOp)
         'dispatch! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn dispatch! (message)
-            if (enum? message)
-              do
-                when config/dev? $ println |Dispatch: message
-                reset! *reel $ next-reel $ decode-dispatch message
-              raise "|Expected Enum operation"
+            when config/dev? $ println |Dispatch: message
+            reset! *reel $ next-reel message
             , &unit
+          :examples $ []
+          :schema $ quote $ Fn app.schema/ResolvedOp (-> Unit) (:features :js-ffi)
+        'dispatch-from-view! $ %{} 'CodeEntry (:doc |)
+          :code $ quote $ defn dispatch-from-view! (message)
+            if (enum? message)
+              match (typed/decode-control message)
+                (:some control) (dispatch! control)
+                (:none)
+                  dispatch! $ schema/decode-op message
+              raise "|Expected Enum operation"
           :examples $ []
           :schema $ quote $ Fn AnyEnum (-> Unit) (:features :js-ffi)
         'handle-direction! $ %{} 'CodeEntry (:doc |)
@@ -757,7 +757,7 @@
             register-language! |json json-lang
             render-app!
             add-watch! *reel :changes $ fn (r p) (render-app!)
-            listen-devtools! |a dispatch!
+            listen-devtools-toggle! |a $ fn () $ dispatch! (typed/Control :toggle)
             add-event-listener! |beforeunload $ fn (_event) (persist-storage!)
             repeat! 60 persist-storage!
             match
@@ -815,9 +815,7 @@
           :code $ quote $ defn render-app! ()
             render-with! mount-target
               fn () $ comp-container @*reel
-              fn (op)
-                hint-fn $ Fn app.schema/Op $ -> Unit
-                dispatch! op
+              , dispatch-from-view!
           :examples $ []
           :schema $ quote $ Fn (-> Unit)
         'repeat! $ %{} 'CodeEntry (:doc |)
@@ -863,7 +861,7 @@
           :require
             respo.core :refer $ render-with! clear-cache! realize-ssr! *changes-logger
             app.updater :refer $ updater
-            reel.util :refer $ listen-devtools!
+            reel.util :refer $ listen-devtools-toggle!
             app.config :as config
             |highlight.js :default hljs
             |highlight.js/lib/languages/clojure :default clojure-lang
@@ -893,13 +891,6 @@
             :hydrate-storage app.schema/Store
             :edit-slide String
             :add-slide Number
-            :reel/toggle
-            :reel/recall Number
-            :reel/run
-            :reel/step
-            :reel/merge
-            :reel/reset
-            :reel/remove Number
           :examples $ []
           :schema $ quote EnumDef
         'ResolvedOp $ %{} 'CodeEntry (:doc |)
