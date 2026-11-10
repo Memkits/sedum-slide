@@ -891,7 +891,7 @@
           :schema $ quote UnionDef
         'Store $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defstruct Store
-            :states $ Map Dynamic Dynamic
+            :states $ Map respo.schema/CoordKey Dynamic
             :router Tag
             :slides $ List String
             :page Number
@@ -922,7 +922,7 @@
                 (:states cursor state-data)
                   assoc store :states $ decode-map-as
                     assoc-in (store :states) (conj cursor :data) state-data
-                    Map Dynamic Dynamic
+                    Map respo.schema/CoordKey Dynamic
                 (:router router) (assoc store :router router)
                 (:render-slides data)
                   let
