@@ -1,12 +1,12 @@
 ## Sedum Slide
 
-使用者影响：CLI / `@calcit/procs` 成对升级到正式 **0.38.0**，模块统一为正式 Respo **0.19.5**、UI **0.15.2**、Reel **0.11.0**、Markdown **0.8.2**、Feather **0.6.3**、JS-FFI **0.2.13**，传递 Router **0.12.2**。须严格整图更新、重新生成 JS 并刷新，不混用旧 runtime 或旧 alpha 模块。App 候选版本为 0.2.0。
+使用者影响：CLI / `@calcit/procs` 成对升级到正式 **0.40.0**，模块统一为正式 Respo **0.19.5**、UI **0.15.2**、Reel **0.11.0**、Markdown **0.8.2**、Feather **0.6.3**、JS-FFI **0.2.13**，传递 Router **0.12.2**。须严格整图更新、重新生成 JS 并刷新，不混用旧 runtime 或旧 alpha 模块。App 候选版本为 0.2.0。
 
 本轮保留 Markdown 分页、编辑/标题选择、页码/空页删除、存档、键盘、HUD 和语音策略。真实 `hud!` 页面错误提示保留，不改成 raise。事件回调采用实际 RespoEvent、名义 Op 和原字段检查，缺席子节点使用 Option，浏览器根在 managed memo frame 内构建/渲染。旧间距迁为方向 API；原 `=< 20 0` 实际只设置 width，保持为 `space-x 20`。
 
-应用派发接收 `ResolvedOp = Op | reel.typed/Control`，用穷尽匹配分别记录业务操作和应用 Reel 控制。业务视图派发 `Op`，Reel 面板和快捷键通过显式回调发送 `Control`。Store 和存档格式沿用。组件状态路径使用 CoordKey union，提词器继续使用原定位样式。
+应用派发接收 `ResolvedOp = Op | reel.typed/Control`，用穷尽匹配分别记录业务操作和应用 Reel 控制。业务视图派发 `Op`，Reel 面板和快捷键通过显式回调发送 `Control`。组件状态路径和存档的顶层状态键使用 CoordKey union，允许 Tag、String 或 Number。混合组件状态的值沿用原数据，提词器继续使用原定位样式。
 
-清理已知 String 的强转，焦点使用 Respo 已提供的 DOM 合同，滚动使用已有 writable DOM 字段；Date/Highlight.js 用现有 external-object trait 的浅层成员检查。原 String/局部滚动桥接 trait 两个内部定义退役，grab-headline 去掉不再需要的 JS FFI feature。unsafe **10→1**，剩余一处是已有 RegExp 构造的 opaque 边界，不用空 trait 检查宣称其已验证。浅层成员检查不证明所有返回值或宿主身份。codeNil **10→4**，剩余四处维持原 UI 状态清空合同；schemaDynamic 仍为五个真实开放位置（两个混合状态 Map 的 key/value 与存档 decoder），不声称消除了任意状态数据。
+清理已知 String 的强转，焦点使用 Respo 已提供的 DOM 合同，滚动使用已有 writable DOM 字段；Date/Highlight.js 用现有 external-object trait 的浅层成员检查。原 String/局部滚动桥接 trait 两个内部定义退役，grab-headline 去掉不再需要的 JS FFI feature。unsafe **10→1**，剩余一处是已有 RegExp 构造的 opaque 边界，不用空 trait 检查宣称其已验证。浅层成员检查不证明所有返回值或宿主身份。codeNil **10→4**，剩余四处维持原 UI 状态清空合同；组件的混合状态值和原始存档 decoder 仍是开放边界。
 
 此前 0.35.1 验证包含 384 个全定义、九个应用 namespace 的 60 个定义、完整 strict diagnostics=[]、deprecated/dynamic-method=0、Caps 七模块和工具链配对、immutable、canonical 及 Vite 构建通过。原项目无附带单元测试，不把空集记为通过，也不新增防御性测试矩阵。
 
