@@ -36,11 +36,11 @@
                     {} $ :class-name css/expand
                     <> $ str |Unknown: router
                 if dev?
-                  Option :some $ comp-typed-reel (>> states :reel) reel ({}) on-control!
-                  Option :none
+                  Some $ comp-typed-reel (>> states :reel) reel ({}) on-control!
+                  , None
                 if dev?
-                  Option :some $ comp-inspect |Store store $ {} (:bottom 0) (:left 100)
-                  Option :none
+                  Some $ comp-inspect |Store store $ {} (:bottom 0) (:left 100)
+                  , None
           :examples $ []
           :schema $ quote $ Fn (reel.typed/State app.schema/Op app.schema/Store)
             Fn reel.typed/Control $ -> Unit
@@ -74,7 +74,7 @@
                             -> Unit
                             :features :js-ffi
                           d! $ app-schema/Op :render-slides $ split-regex content pattern-divider
-                          d! $ app-schema/Op :states cursor nil
+                          d! $ app-schema/Op :states cursor None
                           , &unit
                       <> "|Split text"
                   textarea $ {}
@@ -88,8 +88,8 @@
                         Fn app.schema/Op $ -> Unit
                         -> Unit
                         :features :js-ffi
-                      d! $ app-schema/Op :states cursor $ assoc state :content
-                        decode-map-as (:value e) 'String
+                      d! $ app-schema/Op :states cursor $ Some
+                        assoc state :content $ decode-map-as (:value e) 'String
                       , &unit
                     :on-keydown $ fn (e d!)
                       hint-fn $ Fn respo.schema/RespoEvent
@@ -109,10 +109,10 @@
                             and (= |Enter key) meta?
                           do
                             d! $ app-schema/Op :render-slides $ split-regex content pattern-divider
-                            d! $ app-schema/Op :states cursor nil
+                            d! $ app-schema/Op :states cursor None
                       , &unit
           :examples $ []
-          :schema $ quote $ Fn (Map Dynamic Dynamic) (List String) (-> respo.schema/Component) (:features :js-ffi)
+          :schema $ quote $ Fn respo.schema/States (List String) (-> respo.schema/Component) (:features :js-ffi)
         'comp-sidebar $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defcomp comp-sidebar (router)
             div
@@ -136,11 +136,11 @@
           :code $ quote $ defn make-regex (pattern)
             unsafe-coerce (new js/RegExp pattern) 'app.comp.container/RegexHost
           :examples $ []
-          :schema $ quote $ Fn String (-> app.comp.container/RegexHost) (:features :js-ffi)
+          :schema $ quote $ Fn String (-> RegexHost) (:features :js-ffi)
         'pattern-divider $ %{} 'CodeEntry (:doc |)
           :code $ quote $ def pattern-divider (make-regex |\n-{3,}\n)
           :examples $ []
-          :schema $ quote app.comp.container/RegexHost
+          :schema $ quote RegexHost
         'render-entry $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn render-entry (router-name icon current-page)
             span
@@ -162,7 +162,7 @@
               to-calcit-data (.!split text pattern) true
               List String
           :examples $ []
-          :schema $ quote $ Fn String app.comp.container/RegexHost
+          :schema $ quote $ Fn String RegexHost
             -> $ List String
             :features :js-ffi
         'style-sidebar $ %{} 'CodeEntry (:doc |)
@@ -223,7 +223,7 @@
                           -> Unit
                           :features :js-ffi
                         d! $ app-schema/Op :edit-slide draft
-                        d! $ app-schema/Op :states cursor nil
+                        d! $ app-schema/Op :states cursor None
                         d! $ app-schema/Op :router :slides
                         , &unit
                   textarea $ {}
@@ -236,8 +236,8 @@
                         Fn app.schema/Op $ -> Unit
                         -> Unit
                         :features :js-ffi
-                      d! $ app-schema/Op :states cursor $ assoc state :draft
-                        decode-map-as (:value e) 'String
+                      d! $ app-schema/Op :states cursor $ Some
+                        assoc state :draft $ decode-map-as (:value e) 'String
                       , &unit
                     :placeholder "|(empty page are going to be removed...)"
                     :on-keydown $ fn (e d!)
@@ -252,11 +252,11 @@
                         when
                           and meta? $ or (= |e key) (= |E key)
                           d! $ app-schema/Op :edit-slide draft
-                          d! $ app-schema/Op :states cursor nil
+                          d! $ app-schema/Op :states cursor None
                           d! $ app-schema/Op :router :slides
                       , &unit
           :examples $ []
-          :schema $ quote $ Fn (Map Dynamic Dynamic) String (-> respo.schema/Component) (:features :js-ffi)
+          :schema $ quote $ Fn respo.schema/States String (-> respo.schema/Component) (:features :js-ffi)
         'effect-focus $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defeffect effect-focus () (action el at-place?)
             match action
@@ -485,7 +485,7 @@
                 maybe-slide $ get slides next-page
                 maybe-first-line $ if (.some? maybe-slide)
                   grab-headline $ .unwrap maybe-slide
-                  Option :none
+                  , None
               div
                 {} $ :style $ {} (:position :absolute) (:right right) (:bottom bottom)
                 if (.some? maybe-first-line)
@@ -525,8 +525,8 @@
                 comp-pager page slides 16 8
                 comp-prompter page slides 16 48
                 if readable?
-                  Option :some $ comp-control content
-                  Option :none
+                  Some $ comp-control content
+                  , None
           :examples $ []
           :schema $ quote $ Fn (List String) Number (-> respo.schema/Component) (:features :js-ffi)
         'escape-code $ %{} 'CodeEntry (:doc |)
@@ -568,7 +568,7 @@
         'style-pager $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defstyle style-pager
             {} $ |& $ {} (:position :absolute) (:font-family ui/font-code) (:font-size 24)
-              :color $ hsl 0 0 1 $ Option :some 0.6
+              :color $ hsl 0 0 1 $ Some 0.6
           :examples $ []
           :schema $ quote String
         'supported-langs $ %{} 'CodeEntry (:doc |)
@@ -657,7 +657,7 @@
         '*reel $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defref *reel (typed/new-reel schema/store)
           :examples $ []
-          :schema $ quote $ Ref (reel.typed/State app.schema/Op app.schema/Store)
+          :schema $ quote $ Ref (typed/State schema/Op schema/Store)
         '*storage-failed? $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defref *storage-failed? false
           :examples $ []
@@ -675,7 +675,7 @@
             reset! *reel $ next-reel message
             , &unit
           :examples $ []
-          :schema $ quote $ Fn app.schema/ResolvedOp (-> Unit) (:features :js-ffi)
+          :schema $ quote $ Fn schema/ResolvedOp (-> Unit) (:features :js-ffi)
         'handle-direction! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn handle-direction! (event)
             let
@@ -771,13 +771,13 @@
               (app.schema/Op op)
                 typed/record-op updater @*reel op (generate-id!) (shared/now-ms)
           :examples $ []
-          :schema $ quote $ Fn app.schema/ResolvedOp
-            -> $ reel.typed/State app.schema/Op app.schema/Store
+          :schema $ quote $ Fn schema/ResolvedOp
+            -> $ typed/State schema/Op schema/Store
             :features :js-ffi
         'on-control! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn on-control! (control) (dispatch! control)
           :examples $ []
-          :schema $ quote $ Fn reel.typed/Control (-> Unit) (:features :js-ffi)
+          :schema $ quote $ Fn typed/Control (-> Unit) (:features :js-ffi)
         'persist-storage! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn persist-storage! ()
             when-not @*storage-failed? $ storage-set!
@@ -874,7 +874,8 @@
       :defs $ {}
         'Op $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defenum Op
-            :states (List respo.schema/CoordKey) Dynamic
+            :states (List respo.schema/CoordKey)
+              Option $ Map Tag String
             :router Tag
             :render-slides $ List String
             :slide-up
@@ -903,12 +904,12 @@
               if (struct? value) (&struct:to-map value) value
               , 'app.schema/Store
           :examples $ []
-          :schema $ quote $ Fn Dynamic (-> app.schema/Store)
+          :schema $ quote $ Fn Input (-> Store) (:generics Input)
         'store $ %{} 'CodeEntry (:doc |)
           :code $ quote $ def store
             Store :states ({}) :router :home :slides ([]) :page 0
           :examples $ []
-          :schema $ quote app.schema/Store
+          :schema $ quote Store
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote $ ns app.schema
     'app.updater $ %{} 'FileEntry
@@ -920,9 +921,15 @@
                 slides store.:slides
               match op
                 (:states cursor state-data)
-                  assoc store :states $ decode-map-as
-                    assoc-in (store :states) (conj cursor :data) state-data
-                    Map respo.schema/CoordKey Dynamic
+                  match state-data
+                    (:some data)
+                      assoc store :states $ decode-map-as
+                        assoc-in (store :states) (conj cursor :data) data
+                        Map respo.schema/CoordKey Dynamic
+                    (:none)
+                      assoc store :states $ decode-map-as
+                        assoc-in (store :states) (conj cursor :data) nil
+                        Map respo.schema/CoordKey Dynamic
                 (:router router) (assoc store :router router)
                 (:render-slides data)
                   let
