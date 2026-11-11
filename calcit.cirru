@@ -29,9 +29,12 @@
                 match router
                   :slides $ comp-slides slides page
                   :headlines $ comp-headlines slides page
-                  :edit-slide $ comp-edit-slide (>> states :edit)
+                  :edit-slide $ comp-edit-slide
+                    decode-map-as (>> states :edit) (Map respo.schema/CoordKey Dynamic)
                     .unwrap-or (get slides page) |
-                  :home $ comp-draft (>> states :draft) slides
+                  :home $ comp-draft
+                    decode-map-as (>> states :draft) (Map respo.schema/CoordKey Dynamic)
+                    , slides
                   _ $ div
                     {} $ :class-name css/expand
                     <> $ str |Unknown: router
@@ -112,7 +115,7 @@
                             d! $ app-schema/Op :states cursor None
                       , &unit
           :examples $ []
-          :schema $ quote $ Fn respo.schema/States (List String) (-> respo.schema/Component) (:features :js-ffi)
+          :schema $ quote $ Fn (Map respo.schema/CoordKey Dynamic) (List String) (-> respo.schema/Component) (:features :js-ffi)
         'comp-sidebar $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defcomp comp-sidebar (router)
             div
@@ -256,7 +259,7 @@
                           d! $ app-schema/Op :router :slides
                       , &unit
           :examples $ []
-          :schema $ quote $ Fn respo.schema/States String (-> respo.schema/Component) (:features :js-ffi)
+          :schema $ quote $ Fn (Map respo.schema/CoordKey Dynamic) String (-> respo.schema/Component) (:features :js-ffi)
         'effect-focus $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defeffect effect-focus () (action el at-place?)
             match action
