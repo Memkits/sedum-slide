@@ -29,12 +29,10 @@
                 match router
                   :slides $ comp-slides slides page
                   :headlines $ comp-headlines slides page
-                  :edit-slide $ comp-edit-slide
-                    decode-map-as (>> states :edit) (Map respo.schema/CoordKey Dynamic)
-                    .unwrap-or (get slides page) |
-                  :home $ comp-draft
-                    decode-map-as (>> states :draft) (Map respo.schema/CoordKey Dynamic)
-                    , slides
+                  :edit-slide $ comp-edit-slide $ app.util/editor-state (>> states :edit)
+                    {} $ :draft $ .unwrap-or (get slides page) |
+                  :home $ comp-draft $ app.util/editor-state (>> states :draft)
+                    {} $ :content $ join-string slides (str &newline |---- &newline)
                   _ $ div
                     {} $ :class-name css/expand
                     <> $ str |Unknown: router
@@ -48,18 +46,12 @@
           :schema $ quote $ Fn (reel.typed/State app.schema/Op app.schema/Store)
             Fn reel.typed/Control $ -> Unit
             -> respo.schema/Component
+            :features :io
         'comp-draft $ %{} 'CodeEntry (:doc |)
-          :code $ quote $ defcomp comp-draft (states slides)
+          :code $ quote $ defcomp comp-draft (editor)
             let
-                cursor $ decode-map-as
-                  .unwrap $ get states :cursor
-                  List respo.schema/CoordKey
-                fallback-state $ {} $ :content
-                  join-string slides $ str &newline |---- &newline
-                state $ match (get states :data)
-                  (:none) fallback-state
-                  (:some raw-state)
-                    if (nil? raw-state) fallback-state $ decode-map-as raw-state $ Map Tag String
+                cursor $ :cursor editor
+                state $ :data editor
                 content $ .unwrap $ get state :content
               [] (effect-focus)
                 div
@@ -115,7 +107,7 @@
                             d! $ app-schema/Op :states cursor None
                       , &unit
           :examples $ []
-          :schema $ quote $ Fn (Map respo.schema/CoordKey Dynamic) (List String) (-> respo.schema/Component) (:features :js-ffi)
+          :schema $ quote $ Fn app.util/EditorState (-> respo.schema/Component) (:features :js-ffi)
         'comp-sidebar $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defcomp comp-sidebar (router)
             div
@@ -200,16 +192,10 @@
     'app.comp.edit-slide $ %{} 'FileEntry
       :defs $ {}
         'comp-edit-slide $ %{} 'CodeEntry (:doc |)
-          :code $ quote $ defcomp comp-edit-slide (states slide)
+          :code $ quote $ defcomp comp-edit-slide (editor)
             let
-                cursor $ decode-map-as
-                  .unwrap $ get states :cursor
-                  List respo.schema/CoordKey
-                fallback-state $ {} $ :draft slide
-                state $ match (get states :data)
-                  (:none) fallback-state
-                  (:some raw-state)
-                    if (nil? raw-state) fallback-state $ decode-map-as raw-state $ Map Tag String
+                cursor $ :cursor editor
+                state $ :data editor
                 draft $ .unwrap $ get state :draft
               [] (effect-focus)
                 div
@@ -259,7 +245,7 @@
                           d! $ app-schema/Op :router :slides
                       , &unit
           :examples $ []
-          :schema $ quote $ Fn (Map respo.schema/CoordKey Dynamic) String (-> respo.schema/Component) (:features :js-ffi)
+          :schema $ quote $ Fn app.util/EditorState (-> respo.schema/Component) (:features :js-ffi)
         'effect-focus $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defeffect effect-focus () (action el at-place?)
             match action
@@ -434,7 +420,7 @@
                       (:none) &unit
                     , &unit
           :examples $ []
-          :schema $ quote $ Fn String (-> respo.schema/Component) (:features :js-ffi)
+          :schema $ quote $ Fn String (-> respo.schema/Component) (:features :io :js-ffi)
         'comp-pager $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defcomp comp-pager (page slides right bottom)
             div
@@ -531,7 +517,7 @@
                   Some $ comp-control content
                   , None
           :examples $ []
-          :schema $ quote $ Fn (List String) Number (-> respo.schema/Component) (:features :js-ffi)
+          :schema $ quote $ Fn (List String) Number (-> respo.schema/Component) (:features :io :js-ffi)
         'escape-code $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn escape-code (text)
             decode-map-as (escape-html text) 'String
@@ -558,7 +544,7 @@
                   do (eprintln "|Azure speech key is not configured.") &unit
             , &unit
           :examples $ []
-          :schema $ quote $ Fn String (-> respo.schema/Effect) (:features :js-ffi)
+          :schema $ quote $ Fn String (-> respo.schema/Effect) (:features :io :js-ffi)
         'style-md-area $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defstyle style-md-area
             {}
@@ -678,7 +664,7 @@
             reset! *reel $ next-reel message
             , &unit
           :examples $ []
-          :schema $ quote $ Fn schema/ResolvedOp (-> Unit) (:features :js-ffi)
+          :schema $ quote $ Fn schema/ResolvedOp (-> Unit) (:features :io :js-ffi :state)
         'handle-direction! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn handle-direction! (event)
             let
@@ -713,7 +699,7 @@
                 dispatch! $ schema/Op :router :headlines
               , &unit
           :examples $ []
-          :schema $ quote $ Fn js-ffi.browser/EventHost (-> Unit) (:features :js-ffi)
+          :schema $ quote $ Fn js-ffi.browser/EventHost (-> Unit) (:features :io :js-ffi :state)
         'load-content! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn load-content! (url)
             match
@@ -735,7 +721,7 @@
               (:err error)
                 do (eprintln |failed-to-fetch-slides: error) &unit
           :examples $ []
-          :schema $ quote $ Fn String (-> Unit) (:features :js-ffi) (:async)
+          :schema $ quote $ Fn String (-> Unit) (:features :io :js-ffi :state) (:async)
         'main! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn main! ()
             println "|Running mode:" $ if config/dev?
@@ -761,7 +747,7 @@
             println "|App started."
             , &unit
           :examples $ []
-          :schema $ quote $ Fn (-> Unit) (:features :js-ffi) (:async)
+          :schema $ quote $ Fn (-> Unit) (:features :io :js-ffi :state) (:async)
         'mount-target $ %{} 'CodeEntry (:doc |)
           :code $ quote $ def mount-target
             narrow-element $ .unwrap $ query-selector |.app
@@ -776,11 +762,11 @@
           :examples $ []
           :schema $ quote $ Fn schema/ResolvedOp
             -> $ typed/State schema/Op schema/Store
-            :features :js-ffi
+            :features :io :js-ffi :state
         'on-control! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn on-control! (control) (dispatch! control)
           :examples $ []
-          :schema $ quote $ Fn typed/Control (-> Unit) (:features :js-ffi)
+          :schema $ quote $ Fn typed/Control (-> Unit) (:features :io :js-ffi :state)
         'persist-storage! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn persist-storage! ()
             when-not @*storage-failed? $ storage-set!
@@ -788,7 +774,7 @@
               format-cirru-edn $ @*reel :store
             , &unit
           :examples $ []
-          :schema $ quote $ Fn (-> Unit) (:features :js-ffi)
+          :schema $ quote $ Fn (-> Unit) (:features :js-ffi :state)
         'register-language! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn register-language! (name language)
             .register-language! (js-cast hljs 'app.main/HighlightHost) name language
@@ -805,14 +791,14 @@
               hud! |error build-errors
             , &unit
           :examples $ []
-          :schema $ quote $ Fn (-> Unit) (:features :js-ffi)
+          :schema $ quote $ Fn (-> Unit) (:features :io :js-ffi :state)
         'render-app! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn render-app! ()
             render-with! mount-target
               fn () $ comp-container @*reel on-control!
               , dispatch!
           :examples $ []
-          :schema $ quote $ Fn (-> Unit)
+          :schema $ quote $ Fn (-> Unit) (:features :io :state)
         'repeat! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn repeat! (duration cb)
             set-timeout!
@@ -834,7 +820,7 @@
               fn (message) (reset! *storage-failed? true) (hud! |error "|存档加载失败，已暂停自动保存以保留原数据。") &unit
             , &unit
           :examples $ []
-          :schema $ quote $ Fn String (-> Unit) (:features :js-ffi)
+          :schema $ quote $ Fn String (-> Unit) (:features :io :js-ffi :state)
         'scroll-top! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn scroll-top! ()
             let
@@ -967,15 +953,35 @@
                       assoc :router :edit-slide
                 _ $ do (println |Unknown-op: op) store
           :examples $ []
-          :schema $ quote $ Fn app.schema/Store app.schema/Op String Number (-> app.schema/Store)
+          :schema $ quote $ Fn app.schema/Store app.schema/Op String Number (-> app.schema/Store) (:features :io)
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote $ ns app.updater
           :require
             app.config :refer $ dev?
             app.schema :as app-schema
     'app.util $ %{} 'FileEntry
-      :defs $ {} $ 'grab-headline
-        %{} 'CodeEntry (:doc |)
+      :defs $ {}
+        'EditorState $ %{} 'CodeEntry (:doc |)
+          :code $ quote $ defstruct EditorState
+            :cursor $ List respo.schema/CoordKey
+            :data $ Map Tag String
+          :examples $ []
+          :schema $ quote StructDef
+        'editor-state $ %{} 'CodeEntry (:doc |)
+          :code $ quote $ defn editor-state (branch fallback)
+            let
+                states $ decode-map-as branch $ Map respo.schema/CoordKey Dynamic
+                cursor $ decode-map-as
+                  .unwrap $ &map:get states :cursor
+                  List respo.schema/CoordKey
+                data $ match (&map:get states :data)
+                  (:none) fallback
+                  (:some raw)
+                    if (nil? raw) fallback $ decode-map-as raw $ Map Tag String
+              EditorState :cursor cursor :data data
+          :examples $ []
+          :schema $ quote $ Fn respo.schema/States (Map Tag String) (-> EditorState)
+        'grab-headline $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn grab-headline (slide)
             -> (split slide &newline)
               filter $ fn (line)
