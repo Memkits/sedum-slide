@@ -1,6 +1,6 @@
 ## Sedum Slide
 
-使用者影响：CLI / `@calcit/procs` 成对升级到正式 **0.41.1**，模块统一为正式 Respo **0.19.5**、UI **0.15.2**、Reel **0.11.0**、Markdown **0.8.2**、Feather **0.6.3**、JS-FFI **0.2.13**，传递 Router **0.12.2**。须严格整图更新、重新生成 JS 并刷新，不混用旧 runtime 或旧 alpha 模块。App 候选版本为 0.2.0。
+使用者影响：CLI / `@calcit/procs` 成对升级到正式 **0.42.1**，模块统一为正式 Respo **0.19.5**、UI **0.15.2**、Reel **0.11.0**、Markdown **0.8.2**、Feather **0.6.3**、JS-FFI **0.2.13**，传递 Router **0.12.2**。须严格整图更新、重新生成 JS 并刷新，不混用旧 runtime 或旧 alpha 模块。App 候选版本为 0.2.0。
 
 本轮保留 Markdown 分页、编辑/标题选择、页码/空页删除、存档、键盘、HUD 和语音策略。真实 `hud!` 页面错误提示保留，不改成 raise。事件回调采用实际 RespoEvent、名义 Op 和原字段检查，缺席子节点使用 Option，浏览器根在 managed memo frame 内构建/渲染。旧间距迁为方向 API；原 `=< 20 0` 实际只设置 width，保持为 `space-x 20`。
 
