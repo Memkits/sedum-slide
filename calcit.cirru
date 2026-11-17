@@ -44,9 +44,9 @@
                   , None
           :examples $ []
           :schema $ quote $ Fn (reel.typed/State app.schema/Op app.schema/Store)
-            Fn reel.typed/Control $ -> Unit
+            Fn reel.typed/Control (-> Unit) (:features :io :state)
             -> respo.schema/Component
-            :features :io
+            :features :io :js-ffi :state
         'comp-draft $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defcomp comp-draft (editor)
             let
@@ -318,7 +318,7 @@
                           span $ {} (:inner-text |undefined)
                             :style $ {} $ :color :red
           :examples $ []
-          :schema $ quote $ Fn (List String) Number (-> respo.schema/Component)
+          :schema $ quote $ Fn (List String) Number (-> respo.schema/Component) (:features :state)
         'count-leading-hashes $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn count-leading-hashes (text acc)
             if (starts-with? text |#)
@@ -487,7 +487,7 @@
                     :color $ hsl 0 0 90
                     :font-style :italic
           :examples $ []
-          :schema $ quote $ Fn Number (List String) Number Number (-> respo.schema/Component)
+          :schema $ quote $ Fn Number (List String) Number Number (-> respo.schema/Component) (:features :state)
         'comp-slides $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defcomp comp-slides (slides page)
             let
@@ -517,7 +517,7 @@
                   Some $ comp-control content
                   , None
           :examples $ []
-          :schema $ quote $ Fn (List String) Number (-> respo.schema/Component) (:features :io :js-ffi)
+          :schema $ quote $ Fn (List String) Number (-> respo.schema/Component) (:features :io :js-ffi :state)
         'escape-code $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn escape-code (text)
             decode-map-as (escape-html text) 'String
@@ -735,13 +735,14 @@
             render-app!
             add-watch! *reel :changes $ fn (r p) (render-app!)
             listen-devtools! |a on-control!
-            add-event-listener! |beforeunload $ fn (_event) (persist-storage!)
-            repeat! 60 persist-storage!
+            add-event-listener! |beforeunload $ fn (_event)
+              (fn () (persist-storage!))
+            repeat! 60 $ fn () $ persist-storage!
             match
               storage-get $ .unwrap $ get config/site :storage-key
               (:none) &unit
               (:some raw) (restore-storage! raw)
-            add-event-listener! |keydown handle-direction!
+            add-event-listener! |keydown $ fn (e) (handle-direction! e)
             when (.some? config/initial-content)
               js-await $ load-content! $ .unwrap config/initial-content
             println "|App started."
@@ -951,9 +952,9 @@
                         slice slides (inc after-page) (:: :none)
                       assoc :page $ inc after-page
                       assoc :router :edit-slide
-                _ $ do (println |Unknown-op: op) store
+                _ store
           :examples $ []
-          :schema $ quote $ Fn app.schema/Store app.schema/Op String Number (-> app.schema/Store) (:features :io)
+          :schema $ quote $ Fn app.schema/Store app.schema/Op String Number (-> app.schema/Store)
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote $ ns app.updater
           :require
