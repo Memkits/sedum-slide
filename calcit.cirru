@@ -567,20 +567,17 @@
           :schema $ quote $ Map String String
         'turn-readable $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn turn-readable (content)
-            -> (split-block content)
+            -> (scan-blocks content)
               mapcat $ fn (piece)
-                if (enum? piece)
-                  match piece
-                    (:text raw-lines)
-                      let
-                          lines $ decode-map-as raw-lines $ List String
-                          joined $ join-string lines |
-                        if
-                          or (starts-with? joined |![]) (starts-with? joined "|> ")
-                          []
-                          [] lines
-                    _ $ []
-                  raise "|Expected Markdown block enum"
+                match piece
+                  (:text lines)
+                    let
+                        joined $ join-string lines |
+                      if
+                        or (starts-with? joined |![]) (starts-with? joined "|> ")
+                        []
+                        [] lines
+                  _ $ []
               map $ fn (lines)
                 -> lines
                   map $ fn (line)
@@ -615,7 +612,7 @@
             app.util :refer $ grab-headline
             feather.core :refer $ comp-icon
             |../entry/play-audio.mjs :refer $ synthesizeAzureSpeech
-            respo-md.util.core :refer $ split-block
+            respo-md.util.core :refer $ scan-blocks
             app.schema :as app-schema
             js-ffi.browser :as browser
     'app.config $ %{} 'FileEntry
