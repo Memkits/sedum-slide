@@ -67,6 +67,7 @@ jobs:
           --ns app.updater --ns app.util \
           --summary-only --format json
         calcit calcit.cirru fix --workflow strict --verify --format json
+        calcit calcit.cirru test app.updater/updater --require-match
         calcit calcit.cirru analyze weak-types --only deprecated-call --summary-only --format json | jq -e '.data.summary.calls == 0'
 
     - name: Select CDN asset path

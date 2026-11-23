@@ -910,13 +910,9 @@
                 (:states cursor state-data)
                   match state-data
                     (:some data)
-                      assoc store :states $ decode-map-as
-                        assoc-in (store :states) (conj cursor :data) data
-                        Map respo.schema/CoordKey Dynamic
+                      assoc store :states $ cursor/update-state-map (store :states) cursor data
                     (:none)
-                      assoc store :states $ decode-map-as
-                        assoc-in (store :states) (conj cursor :data) nil
-                        Map respo.schema/CoordKey Dynamic
+                      assoc store :states $ cursor/update-state-map (store :states) cursor nil
                 (:router router) (assoc store :router router)
                 (:render-slides data)
                   let
@@ -952,9 +948,27 @@
                 _ store
           :examples $ []
           :schema $ quote $ Fn app.schema/Store app.schema/Op String Number (-> app.schema/Store)
+          :tests $ [] $ %{} 'TestEntry (:name |state-paths-and-nil)
+            :code $ quote $ let
+                states $ {} (:keep |present) (:panel nil)
+                base $ assoc app-schema/store :states states
+                data $ {} $ :text |draft
+                paths $ decode-map-as
+                  [] ([]) ([] :panel) ([] :panel 7)
+                  List $ List respo.schema/CoordKey
+              map paths $ fn (path)
+                hint-fn $ Fn (List respo.schema/CoordKey) (-> Unit)
+                assert=
+                  assoc-in states (conj path :data) data
+                  :states $ updater base
+                    app-schema/Op :states path $ Some data
+                    , |test 0
+                assert=
+                  assoc-in states (conj path :data) nil
+                  :states $ updater base (app-schema/Op :states path None) |test 0
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote $ ns app.updater
-          :require
+          :require (respo.cursor :as cursor)
             app.config :refer $ dev?
             app.schema :as app-schema
     'app.util $ %{} 'FileEntry
