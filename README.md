@@ -1,8 +1,8 @@
 ## Sedum Slide
 
-### 0.45.1 使用者影响
+### 0.46.0 使用者影响
 
-开发与构建需配对 Calcit / `@calcit/procs` 0.45.1，并重新安装依赖、生成前端资源。配套正式版本为 Respo 0.19.18、UI 0.16.5、Reel 0.11.9、Markdown 0.9.9、Feather 0.6.13、JS-FFI 0.2.24，传递 Router 0.12.17。编辑、存档与语音入口保持原有行为；本轮未调用真实语音服务。
+开发与构建需配对 Calcit / `@calcit/procs` 0.46.0，并重新安装依赖、生成前端资源。配套正式版本为 Respo 0.20.0、UI 0.16.6、Reel 0.11.10、Markdown 0.9.10、Feather 0.6.14、JS-FFI 0.2.26，传递 Router 0.12.18。编辑、存档与语音入口保持原有行为；本轮未调用真实语音服务。
 
 以下是 0.44.0 的历史迁移记录。
 
@@ -39,11 +39,11 @@ Clicks on pager:
 
 https://github.com/calcit-lang/respo-calcit-workflow
 
-Use paired formal Calcit/procs 0.45.1 with canonical calcit.cirru/deps.cirru.
+Use paired formal Calcit/procs 0.46.0 with canonical calcit.cirru/deps.cirru.
 Run `caps --ci --strict`, `yarn install --immutable`, then `yarn dev` or `yarn build`.
 Development compiles once before Vite; run `calcit calcit.cirru -w` separately for edits, without concurrently.
 
-原 CI 保留 canonical、全部定义、九个应用 namespace 的公开合同、完整 strict、deprecated 零及构建。COS Action v1.2.0 仅使用内置 verify，PR 按编号/run/attempt 隔离；原生产前缀、服务器目录、队列及 15/10 分钟超时保持。不增加验证脚本、测试矩阵、预算或编译器特例，不恢复 compact.cirru/package.cirru，不提交 js-out。
+原 CI 保留 canonical、全部定义、九个应用 namespace 的公开合同、完整 strict、deprecated 零及构建。COS Action v1.3.0 仅使用内置 verify，PR 按编号/run/attempt 隔离；原生产前缀、服务器目录、队列及 15/10 分钟超时保持。不增加验证脚本、测试矩阵、预算或编译器特例，不恢复 compact.cirru/package.cirru，不提交 js-out。
 
 Store、Op 与 `reel.typed/State Op Store` 保留真实名义数据；不把 Reel 当 Map，不将字符串/Map/回调强转成已验证类型。Respo 混合 key 子状态继续是明确开放边界；不为换依赖放宽门禁或宣称零 Dynamic。
 
