@@ -953,19 +953,42 @@
                 states $ {} (:keep |present) (:panel nil)
                 base $ assoc app-schema/store :states states
                 data $ {} $ :text |draft
-                paths $ decode-map-as
-                  [] ([]) ([] :panel) ([] :panel 7)
-                  List $ List respo.schema/CoordKey
-              map paths $ fn (path)
-                hint-fn $ Fn (List respo.schema/CoordKey) (-> Unit)
-                assert=
-                  assoc-in states (conj path :data) data
-                  :states $ updater base
-                    app-schema/Op :states path $ Some data
-                    , |test 0
-                assert=
-                  assoc-in states (conj path :data) nil
-                  :states $ updater base (app-schema/Op :states path None) |test 0
+                root $ updater base
+                  app-schema/Op :states ([]) (Some data)
+                  , |test 0
+                panel $ updater base
+                  app-schema/Op :states ([] :panel) (Some data)
+                  , |test 0
+                nested $ updater base
+                  app-schema/Op :states ([] :panel 7) (Some data)
+                  , |test 0
+                clear-root $ updater base
+                  app-schema/Op :states ([]) None
+                  , |test 0
+                clear-panel $ updater base
+                  app-schema/Op :states ([] :panel) None
+                  , |test 0
+                clear-nested $ updater base
+                  app-schema/Op :states ([] :panel 7) None
+                  , |test 0
+              assert= (:states root)
+                {} (:keep |present) (:panel nil) (:data data)
+              assert= (:states panel)
+                {} (:keep |present)
+                  :panel $ {} $ :data data
+              assert= (:states nested)
+                {} (:keep |present)
+                  :panel $ {} $ 7
+                    {} $ :data data
+              assert= (:states clear-root)
+                {} (:keep |present) (:panel nil) (:data nil)
+              assert= (:states clear-panel)
+                {} (:keep |present)
+                  :panel $ {} $ :data nil
+              assert= (:states clear-nested)
+                {} (:keep |present)
+                  :panel $ {} $ 7
+                    {} $ :data nil
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote $ ns app.updater
           :require (respo.cursor :as cursor)
